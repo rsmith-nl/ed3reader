@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-03-10T20:46:03+0100
+// Last modified: 2026-03-10T20:53:40+0100
 
 #include "setup.h"
 #include "logging.h"
@@ -114,10 +114,14 @@ Options setup(int argc, char *argv[])
   // Save updated values, skipping the executable name.
   rv.argc = argc - optind;
   rv.argv = argv + optind;
-  if (rv.argc == 0) {
+  if (rv.argc < 2) {
     warning("no input files given; exiting");
     exit(EXIT_FAILURE);
   }
+  rv.infile = rv.argv[0];
+  rv.outfile = rv.argv[1];
+  rv.argc -= 2;
+  rv.argv += 2;
   // Show remaining arguments when LOG_DEBUG is set.
   debug("remaining argc = %d", rv.argc);
   for (int32_t j = 0; j < rv.argc; j++) {
