@@ -1,0 +1,4 @@
+*.o
+program
+program-debug
+version.h
