@@ -5,10 +5,11 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-10T21:25:12+0100
+// Last modified: 2026-03-11T07:41:31+0100
 
 #pragma once
 
+#include <stdint.h>
 #include "arena.h"
 #include "stringview.h"
 
@@ -39,11 +40,11 @@ typedef struct {
 } Header;
 
 typedef struct {
-  Sv8 name;
-  Sv8 contents;
+  Sv8 key;
+  Sv8 value;
   Sv8 tail;
   bool ok;
-} Tag;
+} ContentElement;
 
 
 #ifdef __cplusplus
@@ -52,7 +53,7 @@ extern "C" {
 
 extern Sv8 read_file(char *path, Arena *permanent);
 extern Header read_header(Sv8 contents);
-extern Tag read_tag(Sv8 contents, Sv8 name);
+extern ContentElement read_content_element(Sv8 contents, Sv8 name);
 
 #ifdef __cplusplus
 }

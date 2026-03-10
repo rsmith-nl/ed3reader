@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-10T21:26:50+0100
+// Last modified: 2026-03-11T07:41:36+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -13,6 +13,7 @@
 #include "stringview.h"
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 
 Sv8 read_file(char *path, Arena *permanent)
@@ -41,9 +42,33 @@ Sv8 read_file(char *path, Arena *permanent)
   return contents;
 }
 
-Tag read_tag(Sv8 contents, Sv8 name)
+// This function only reads element in the format <name>value</tag>.
+ContentElement read_content_element(Sv8 contents, Sv8 name)
 {
-  Tag rv = {0};
+  ContentElement rv = {0};
+  Sv8 current = contents;
+  // Check for start of element.
+  ptrdiff_t index = sv8find(contents, name);
+  if (index==-1) {
+    return rv;
+  }
+  current.data += index+2;
+  current.len -= index+2;
+  rv.tail = current;
+  ptrdiff_t index2 = sv8find(current, name);
+  if (index==-1) {
+    rv.tail.data = 0;
+    rv.tail.len = 0;
+    return rv;
+  }
+  // Go back to before "</"
+  index2 -= 3;
+  rv.key = name;
+  rv.value = sv8span(contents.data+index, current.data+index2);
+  index2 = name.len + 4;
+  rv.tail.data += index2;
+  rv.tail.len -= index2;
+  rv.ok = true;
   return rv;
 }
 
