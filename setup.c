@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-03-10T20:53:40+0100
+// Last modified: 2026-03-10T21:41:22+0100
 
 #include "setup.h"
 #include "logging.h"
@@ -43,13 +43,13 @@ const char license[] =
 
 
 const char help[] =
-  "usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile outfile\n"
+  "usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile [outfile]\n"
   "\n"
   "Program for ...\n"
   "\n"
   "positional argument: \n"
   "  infile  -- input file in ed3 format.\n"
-  "  outfile -- output file in text format.\n"
+  "  outfile -- output file name. If this is not given output goes to stdout.\n"
   "\n"
   "options:\n"
   "  -h, --help            show this help message and exit\n"
@@ -114,14 +114,18 @@ Options setup(int argc, char *argv[])
   // Save updated values, skipping the executable name.
   rv.argc = argc - optind;
   rv.argv = argv + optind;
-  if (rv.argc < 2) {
-    warning("no input files given; exiting");
+  if (rv.argc < 1) {
+    warning("no input file given; exiting");
     exit(EXIT_FAILURE);
   }
   rv.infile = rv.argv[0];
-  rv.outfile = rv.argv[1];
-  rv.argc -= 2;
-  rv.argv += 2;
+  rv.argc--;
+  rv.argv++;
+  if (rv.argc > 0) {
+    rv.outfile = rv.argv[0];
+    rv.argc--;
+    rv.argv++;
+  }
   // Show remaining arguments when LOG_DEBUG is set.
   debug("remaining argc = %d", rv.argc);
   for (int32_t j = 0; j < rv.argc; j++) {
