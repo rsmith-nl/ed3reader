@@ -30,7 +30,7 @@ DOCSDIR= $(PREFIX)/share/doc/$(BASENAME)
 DISTFILES = Makefile
 
 # Source files.
-SRCS = ed3reader.c setup.c
+SRCS = ed3reader.c setup.c parser.c
 SRCS += logging.c stringview.c arena.c
 
 ##### No editing necessary beyond this point

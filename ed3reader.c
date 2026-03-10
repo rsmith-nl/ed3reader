@@ -5,12 +5,13 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-10T20:48:34+0100
+// Last modified: 2026-03-10T21:33:25+0100
 
 
-#include "setup.h"
-#include "stringview.h"
+#include "arena.h"
 #include "logging.h"
+#include "parser.h"
+#include "setup.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -25,6 +26,9 @@ int main(int argc, char *argv[])
   (void)argv;
   Options opt = setup(argc, argv);
   debug("starting ed3reader...");
+  Arena permanent = arena_create(32*1024*1024);
+  Sv8 contents = read_file(opt.infile, &permanent);
+  info("input file %s has a size of %d bytes", opt.infile, contents.len);
   debug("ending ed3reader normally...");
   return 0;
 }

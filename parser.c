@@ -1,0 +1,54 @@
+// file: parser.c
+// vim:fileencoding=utf-8:ft=c:tabstop=2
+// This is free and unencumbered software released into the public domain.
+//
+// Author: R.F. Smith <rsmith@xs4all.nl>
+// SPDX-License-Identifier: Unlicense
+// Created: 2026-03-10 20:58:54 +0100
+// Last modified: 2026-03-10T21:26:50+0100
+
+#include "arena.h"
+#include "logging.h"
+#include "parser.h"
+#include "stringview.h"
+
+#include <assert.h>
+#include <stdio.h>
+
+Sv8 read_file(char *path, Arena *permanent)
+{
+  assert(path!=0);
+  assert(permanent!=0);
+  Sv8 contents = {0};
+  FILE *inputfile = fopen(path, "r");
+  if (inputfile==0) {
+    info("could not open file %s", path);
+    return contents;
+  }
+  fseek(inputfile, 0L, SEEK_END);
+  // Make space for extra newline.
+  ptrdiff_t size = ftell(inputfile) + 1;
+  rewind(inputfile);
+  contents.data = arena_new(permanent, char, size);
+  contents.len = size;
+  ptrdiff_t rv = fread(contents.data, sizeof(char), size, inputfile);
+  // Append extra newline.
+  contents.data[rv++] = '\n';
+  fclose(inputfile);
+  if (rv != size) {
+    info("file “%s” has size %td bytes, but only %td bytes read.", path, size, rv);
+  }
+  return contents;
+}
+
+Tag read_tag(Sv8 contents, Sv8 name)
+{
+  Tag rv = {0};
+  return rv;
+}
+
+Header read_header(Sv8 contents)
+{
+  Header rv = {0};
+  return rv;
+}
