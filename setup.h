@@ -5,21 +5,13 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-02-22 15:24:00 +0100
-// Last modified: 2026-02-22T15:41:59+0100
+// Last modified: 2026-03-10T20:42:17+0100
 
 #pragma once
 
 #include <stdbool.h>
 
-enum Cmd {
-  CHECK,
-  STATUS,
-  DIFF,
-  INSTALL
-};
-
 typedef struct {
-  enum Cmd cmd;
   bool verbose;
   int argc;
   char **argv;

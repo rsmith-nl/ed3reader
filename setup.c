@@ -1,3 +1,11 @@
+// file: setup.c
+// vim:fileencoding=utf-8:ft=c:tabstop=2
+// This is free and unencumbered software released into the public domain.
+//
+// Author: R.F. Smith <rsmith@xs4all.nl>
+// SPDX-License-Identifier: Unlicense
+// Created: 2026-03-10 20:41:17 +0100
+// Last modified: 2026-03-10T20:46:03+0100
 
 #include "setup.h"
 #include "logging.h"
@@ -9,7 +17,7 @@
 #include <strings.h>
 #include <getopt.h>
 
-char *name = "program-c";
+char *name = "ed3reader-c";
 
 const char license[] =
   "This is free and unencumbered software released into the public domain.\n\n"
@@ -31,22 +39,23 @@ const char license[] =
   "OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,\n"
   "ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR\n"
   "OTHER DEALINGS IN THE SOFTWARE.\n\n"
-  "For more information, please refer to <http://unlicense.org>\n";
+  "For more information, please refer to <http://unlicense.org>\n\n";
 
 
 const char help[] =
-  "usage: program-c [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] [file ...]\n"
+  "usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile outfile\n"
   "\n"
   "Program for ...\n"
   "\n"
   "positional argument: \n"
-  "  one or more files.\n"
+  "  infile  -- input file in ed3 format.\n"
+  "  outfile -- output file in text format.\n"
   "\n"
   "options:\n"
   "  -h, --help            show this help message and exit\n"
   "  -v, --version         show program's version number and exit\n"
   "  -l, --license         print the license\n"
-  "  --log                 logging level debug,info,(default) warn,error,crit\n";
+  "  --log                 logging level debug,info,(default) warn,error,crit\n\n";
 
 
 Options setup(int argc, char *argv[])

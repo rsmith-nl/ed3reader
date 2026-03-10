@@ -1,4 +1,4 @@
 *.o
-program
-program-debug
+ed3reader
+ed3reader-debug
 version.h

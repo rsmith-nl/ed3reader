@@ -1,8 +1,8 @@
 # Package name and version: BASENAME-VMAJOR.VMINOR.VPATCH.tar.gz
-BASENAME = program
+BASENAME = ed3reader
 VMAJOR   = 2026
-VMINOR   = 02
-VPATCH   = 27
+VMINOR   = 03
+VPATCH   = 10
 
 # Define the C compiler to be used, if not cc.
 #CC = gcc
@@ -30,7 +30,7 @@ DOCSDIR= $(PREFIX)/share/doc/$(BASENAME)
 DISTFILES = Makefile
 
 # Source files.
-SRCS = program.c setup.c
+SRCS = ed3reader.c setup.c
 SRCS += logging.c
 
 ##### No editing necessary beyond this point
