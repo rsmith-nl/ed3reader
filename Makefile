@@ -31,7 +31,7 @@ DISTFILES = Makefile
 
 # Source files.
 SRCS = ed3reader.c setup.c
-SRCS += logging.c
+SRCS += logging.c stringview.c
 
 ##### No editing necessary beyond this point
 

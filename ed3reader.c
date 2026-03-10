@@ -5,10 +5,11 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-10T20:43:18+0100
+// Last modified: 2026-03-10T20:48:34+0100
 
 
 #include "setup.h"
+#include "stringview.h"
 #include "logging.h"
 
 #include <stdint.h>
