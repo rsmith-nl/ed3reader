@@ -60,7 +60,7 @@ void *arena_alloc(Arena *arena, ptrdiff_t size, ptrdiff_t count, ptrdiff_t align
   ptrdiff_t remaining = arena->length - arena->current_offset - padding;
   if (count > remaining/size) {
     fprintf(stderr, "arena %p exhausted; %td items of %td bytes requested, %td available\n",
-          (void *)arena, count, size, remaining/size);
+            (void *)arena, count, size, remaining/size);
     abort();
   }
   void *rv = arena->begin + arena->current_offset + padding;
