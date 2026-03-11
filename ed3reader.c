@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-11T20:43:13+0100
+// Last modified: 2026-03-11T21:22:18+0100
 
 
 #include "arena.h"
@@ -82,11 +82,32 @@ int main(int argc, char *argv[])
   }
   headerinfo = read_content_element(contents, SV8("Interval"));
   if (headerinfo.ok) {
-    fprintf(stderr, "Interval %s\n", sv8cstring(headerinfo.value));
+    //fprintf(stderr, "Interval %s\n", sv8cstring(headerinfo.value));
+    Sv8Int intval = sv8toi(headerinfo.value);
+    if (intval.ok) {
+      uint32_t count = (uint32_t)intval.result & 0xfff;
+      uint32_t unit = ((uint32_t)intval.result & 0xf000)>>12;
+      char *units = 0;
+      switch (unit) {
+        case 8:
+          units = "minutes";
+          break;
+        case 4:
+          units = "seconds";
+          break;
+        default:
+          units = "unknown";
+      }
+      fprintf(stderr, "Interval: %d %s\n", count, units);
+    }
   }
   headerinfo = read_content_element(contents, SV8("DateStart"));
   if (headerinfo.ok) {
     fprintf(stderr, "Starting date: %s\n", sv8cstring(headerinfo.value));
+  }
+  ContentElement data = read_content_element(contents, SV8("CodedData"));
+  if (data.ok) {
+    fprintf(stderr, "Read data element. Length %ld bytes\n", data.value.len);
   }
   debug("ending ed3reader normally...");
   return 0;
