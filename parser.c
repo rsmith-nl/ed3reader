@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-11T20:38:19+0100
+// Last modified: 2026-03-11T23:54:10+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -14,6 +14,8 @@
 
 #include <assert.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdio.h>
 
 Sv8 read_file(char *path, Arena *permanent)
@@ -86,5 +88,111 @@ ContentElement read_content_element(Sv8 contents, Sv8 name)
 Header read_header(Sv8 contents)
 {
   Header rv = {0};
+  return rv;
+}
+
+static const char invB64[128] = {
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1,
+  -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+  17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30,
+  31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+  51, -1, -1, -1, -1, -1
+};
+
+// Adapted from base64.c to skip whitespace.
+static int b64decode(const char *in, uint32_t inlen, char *out, uint32_t outlen)
+{
+  int ix = 0;
+  uint32_t outcnt = 0;
+  unsigned char obuf[5] = {0};
+  char *p = out;
+  for (uint32_t j = 0; j < inlen; j++) {
+    int cur = (unsigned char)in[j];
+    if (cur == 61) {
+      // Filler
+      obuf[ix++] = 0;
+    } else if (cur == 9 || cur == 10 || cur == 13 || cur == 32) {
+      continue; // Skip whitespace.
+    } else if (cur < 0 || invB64[cur] == -1) {
+      return -1; // Input contains illegal character
+    } else {
+      obuf[ix++] = invB64[cur];
+    }
+    if (ix == 4) {
+      uint32_t k = (obuf[0]<<18)|(obuf[1]<<12)|(obuf[2]<<6)|obuf[3];
+      memset(obuf, 0, 5);
+      ix = 0;
+      unsigned char tmp[3] = {(k&0xff0000)>>16, (k&0xff00)>>8, k&0xff};
+      for (int32_t q = 0; q < 3; q++) {
+        *p++ = tmp[q];
+        if (++outcnt >= outlen) {
+          return 0;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+
+// Cut, but then on a stringview.
+Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
+{
+  Sv8Cut rv = {0};
+  ptrdiff_t ix = sv8find(s, c);
+  if (ix==-1) {
+    return rv;
+  }
+  rv.head = s;
+  rv.head.len = ix;
+  rv.tail.data = s.data + ix + c.len;
+  rv.tail.len = s.len - ix - c.len;
+  return rv;
+}
+
+
+typedef struct {
+  int32_t index;
+  int32_t count;
+  uint16_t *b16;
+  Sv8 tail;
+  bool ok;
+} Data;
+
+Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
+{
+  Data rv = {0}, fail = {0};
+  Sv8 current = contents;
+  Sv8 dend = SV8("</CodedData>\"");
+  Sv8Cut ccut = sv8lpartition(contents, SV8("<CodedData index=\""));
+  if (!ccut.ok) {
+    return fail;
+  }
+  Sv8Int num = sv8toi(ccut.tail);
+  if (!num.ok) {
+    return fail;
+  }
+  rv.index = num.result;
+  ccut = sv8lpartition(contents, SV8("count=\""));
+  if (!ccut.ok) {
+    return fail;
+  }
+  num = sv8toi(ccut.tail);
+  if (!num.ok) {
+    return fail;
+  }
+  rv.count = num.result;
+  current = num.tail;
+  current.data += 2;
+  current.len -= 2;
+  ptrdiff_t endix = sv8find(current, dend);
+  if (endix==-1) {
+    return fail;
+  }
+  current.len -= endix;
+  // Current now contains base64 encoded data, with embedded newlines.
+
   return rv;
 }
