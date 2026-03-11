@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-11T07:41:36+0100
+// Last modified: 2026-03-11T20:38:19+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -49,22 +49,33 @@ ContentElement read_content_element(Sv8 contents, Sv8 name)
   Sv8 current = contents;
   // Check for start of element.
   ptrdiff_t index = sv8find(contents, name);
-  if (index==-1) {
+  if (index==-1 || contents.data[index-1]!='<') {
     return rv;
   }
-  current.data += index+2;
-  current.len -= index+2;
+  current.data += index+name.len;
+  current.len -= index+name.len;
+  // The next character should be ' ' or '>'.
+  if (current.data[0]!=' ' && current.data[0]!='>') {
+    return rv;
+  }
+  ptrdiff_t index3 = sv8lindex(current, '>');
+  if (index3!=-1) {
+    current.data += index3+1;
+    current.len -= index3+1;
+  } else {
+    return rv;
+  }
   rv.tail = current;
   ptrdiff_t index2 = sv8find(current, name);
-  if (index==-1) {
+  if (index2==-1) {
     rv.tail.data = 0;
     rv.tail.len = 0;
     return rv;
   }
   // Go back to before "</"
-  index2 -= 3;
+  index2 -= 2;
   rv.key = name;
-  rv.value = sv8span(contents.data+index, current.data+index2);
+  rv.value = sv8span(current.data, current.data+index2);
   index2 = name.len + 4;
   rv.tail.data += index2;
   rv.tail.len -= index2;
