@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-11T23:54:10+0100
+// Last modified: 2026-03-12T08:18:44+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -91,21 +91,24 @@ Header read_header(Sv8 contents)
   return rv;
 }
 
+
+// In Python:
+// invB64 = [B64.index(chr(j)) if chr(j) in B64 else -1 for j in range(128)]
 static const char invB64[128] = {
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-  -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1,
-  -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-  17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30,
-  31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-  51, -1, -1, -1, -1, -1
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+  52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+  -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+  18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27,
+  28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+  44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
 };
 
-// Adapted from base64.c to skip whitespace.
 static int b64decode(const char *in, uint32_t inlen, char *out, uint32_t outlen)
 {
   int ix = 0;
-  uint32_t outcnt = 0;
+  int32_t outcnt = 0;
   unsigned char obuf[5] = {0};
   char *p = out;
   for (uint32_t j = 0; j < inlen; j++) {
@@ -113,8 +116,6 @@ static int b64decode(const char *in, uint32_t inlen, char *out, uint32_t outlen)
     if (cur == 61) {
       // Filler
       obuf[ix++] = 0;
-    } else if (cur == 9 || cur == 10 || cur == 13 || cur == 32) {
-      continue; // Skip whitespace.
     } else if (cur < 0 || invB64[cur] == -1) {
       return -1; // Input contains illegal character
     } else {
@@ -133,9 +134,8 @@ static int b64decode(const char *in, uint32_t inlen, char *out, uint32_t outlen)
       }
     }
   }
-  return 0;
+  return outcnt;
 }
-
 
 // Cut, but then on a stringview.
 Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
@@ -149,50 +149,65 @@ Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
   rv.head.len = ix;
   rv.tail.data = s.data + ix + c.len;
   rv.tail.len = s.len - ix - c.len;
+  rv.ok = true;
   return rv;
 }
-
-
-typedef struct {
-  int32_t index;
-  int32_t count;
-  uint16_t *b16;
-  Sv8 tail;
-  bool ok;
-} Data;
 
 Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
 {
   Data rv = {0}, fail = {0};
-  Sv8 current = contents;
-  Sv8 dend = SV8("</CodedData>\"");
+  Sv8 dend = SV8("</CodedData>");
   Sv8Cut ccut = sv8lpartition(contents, SV8("<CodedData index=\""));
   if (!ccut.ok) {
+    debug("failed to find start of data.");
     return fail;
   }
   Sv8Int num = sv8toi(ccut.tail);
   if (!num.ok) {
+    debug("failed read index.");
     return fail;
   }
   rv.index = num.result;
   ccut = sv8lpartition(contents, SV8("count=\""));
   if (!ccut.ok) {
+    debug("failed find index.");
     return fail;
   }
   num = sv8toi(ccut.tail);
   if (!num.ok) {
+    debug("failed to read count.");
+    return fail;
+  }
+  if (num.result > 255) {
+    debug("count too large for buffer.");
     return fail;
   }
   rv.count = num.result;
-  current = num.tail;
+  Sv8 current = num.tail;
   current.data += 2;
   current.len -= 2;
   ptrdiff_t endix = sv8find(current, dend);
   if (endix==-1) {
+    debug("failed to find end of data.");
     return fail;
   }
+  rv.tail = sv8lskip(current, endix);
   current.len -= endix;
   // Current now contains base64 encoded data, with embedded newlines.
-
+  char inbuf[256] = {0};
+  uint16_t outbuf[128] = {0};
+  for (int32_t j = 0, oi = 0; j < current.len; j++) {
+    if (current.data[j] != '\n') {
+      outbuf[oi++] = current.data[j];
+    }
+  }
+  int conv = b64decode(inbuf, 255, (char*)outbuf, 255);
+  if (conv < 1) {
+    debug("failed to decode data.");
+    return fail;
+  }
+  rv.b16 = arena_new(permanent, uint16_t, conv/2);
+  memcpy(rv.b16, outbuf, conv);
+  rv.ok = true;
   return rv;
 }

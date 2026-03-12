@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-11T21:22:18+0100
+// Last modified: 2026-03-12T08:04:05+0100
 
 
 #include "arena.h"
@@ -108,6 +108,10 @@ int main(int argc, char *argv[])
   ContentElement data = read_content_element(contents, SV8("CodedData"));
   if (data.ok) {
     fprintf(stderr, "Read data element. Length %ld bytes\n", data.value.len);
+  }
+  Data block = read_data(contents, 16, &permanent);
+  if (block.ok) {
+    fprintf(stderr, "read %d values from block %d", block.count, block.index);
   }
   debug("ending ed3reader normally...");
   return 0;
