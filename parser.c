@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-12T08:18:44+0100
+// Last modified: 2026-03-12T23:07:08+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -85,11 +85,11 @@ ContentElement read_content_element(Sv8 contents, Sv8 name)
   return rv;
 }
 
-Header read_header(Sv8 contents)
-{
-  Header rv = {0};
-  return rv;
-}
+//Header read_header(Sv8 contents)
+//{
+//  Header rv = {0};
+//  return rv;
+//}
 
 
 // In Python:
@@ -105,13 +105,13 @@ static const char invB64[128] = {
   44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
 };
 
-static int b64decode(const char *in, uint32_t inlen, char *out, uint32_t outlen)
+static int b64decode(const char *in, int32_t inlen, char *out, int32_t outlen)
 {
   int ix = 0;
   int32_t outcnt = 0;
   unsigned char obuf[5] = {0};
   char *p = out;
-  for (uint32_t j = 0; j < inlen; j++) {
+  for (int32_t j = 0; j < inlen; j++) {
     int cur = (unsigned char)in[j];
     if (cur == 61) {
       // Filler
@@ -153,7 +153,7 @@ Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
   return rv;
 }
 
-Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
+Data read_data(Sv8 contents, Arena *permanent)
 {
   Data rv = {0}, fail = {0};
   Sv8 dend = SV8("</CodedData>");
@@ -168,9 +168,10 @@ Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
     return fail;
   }
   rv.index = num.result;
+  debug("rv.index = %d", rv.index);
   ccut = sv8lpartition(contents, SV8("count=\""));
   if (!ccut.ok) {
-    debug("failed find index.");
+    debug("failed to find count.");
     return fail;
   }
   num = sv8toi(ccut.tail);
@@ -178,11 +179,9 @@ Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
     debug("failed to read count.");
     return fail;
   }
-  if (num.result > 255) {
-    debug("count too large for buffer.");
-    return fail;
-  }
   rv.count = num.result;
+  debug("rv.count = %d", rv.count);
+  debug("num.tail.len = %d", num.tail.len);
   Sv8 current = num.tail;
   current.data += 2;
   current.len -= 2;
@@ -191,17 +190,22 @@ Data read_data(Sv8 contents, int32_t bits, Arena *permanent)
     debug("failed to find end of data.");
     return fail;
   }
+  debug("endix = %ld", endix);
   rv.tail = sv8lskip(current, endix);
-  current.len -= endix;
+  current.len = endix;
   // Current now contains base64 encoded data, with embedded newlines.
-  char inbuf[256] = {0};
-  uint16_t outbuf[128] = {0};
-  for (int32_t j = 0, oi = 0; j < current.len; j++) {
+  debug("current.len = %d", current.len);
+  char *compacted = arena_new(permanent, char, current.len+1);
+  int32_t oi = 0;
+  for (int32_t j = 0; j < current.len; j++) {
     if (current.data[j] != '\n') {
-      outbuf[oi++] = current.data[j];
+      compacted[oi++] = current.data[j];
     }
   }
-  int conv = b64decode(inbuf, 255, (char*)outbuf, 255);
+  debug("oi = %d", oi);
+  uint16_t *outbuf = arena_new(permanent, uint16_t, current.len);
+  memset(outbuf, 0, current.len*2);
+  int conv = b64decode(compacted, oi, (char*)outbuf, current.len*2);
   if (conv < 1) {
     debug("failed to decode data.");
     return fail;
