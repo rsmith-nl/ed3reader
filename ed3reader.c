@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-13T14:54:34+0100
+// Last modified: 2026-03-13T16:43:50+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -49,9 +49,12 @@ int main(int argc, char *argv[])
   fprintf(stderr, "# Start date: %s\n", sv8cstring(header.date_start));
   float divisor = powf(10.0, header.comma_shift);
   // Read data blocks.
+  int32_t total_count = 0;
   DataBlock block = read_data_block(contents, &permanent);
-  while (block.ok) {
-    fprintf(stderr, "read %d values from block %d\n", block.count, block.index);
+  while (block.ok && total_count < header.data_count) {
+    total_count += block.count/header.channel_count;
+    fprintf(stderr, "read %d samples from block %d (total %d)\n",
+            block.count/header.channel_count, block.index, total_count);
     for (int32_t j = 0; j < 10; j++) {
       fprintf(stderr, "Data.b16[%d] = %.1f\n", j, block.b16[j]/divisor);
     }
