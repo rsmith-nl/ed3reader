@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-13T01:44:12+0100
+// Last modified: 2026-03-13T14:06:54+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -17,6 +17,21 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+
+typedef struct {
+  Sv8 key;
+  Sv8 value;
+  Sv8 tail;
+  bool ok;
+} ContentString;
+
+typedef struct {
+  Sv8 key;
+  int32_t value;
+  Sv8 tail;
+  bool ok;
+} ContentInt;
+
 
 Sv8 read_file(char *path, Arena *permanent)
 {
@@ -45,9 +60,9 @@ Sv8 read_file(char *path, Arena *permanent)
 }
 
 // This function only reads element in the format <name>value</tag>.
-ContentElement read_content_element(Sv8 contents, Sv8 name)
+ContentString read_content_string(Sv8 contents, Sv8 name)
 {
-  ContentElement rv = {0};
+  ContentString rv = {0};
   Sv8 current = contents;
   // Check for start of element.
   ptrdiff_t index = sv8find(contents, name);
@@ -85,54 +100,105 @@ ContentElement read_content_element(Sv8 contents, Sv8 name)
   return rv;
 }
 
+ContentInt read_content_int(Sv8 contents, Sv8 name)
+{
+  ContentInt rv = {0};
+  ContentString string = read_content_string(contents, name);
+  if (!string.ok) {
+    return rv;
+  }
+  Sv8Int bc = sv8toi(string.value);
+  if (bc.ok) {
+    rv.key = name;
+    rv.value = bc.result;
+    rv.tail = string.tail;
+    rv.ok = true;
+  }
+  return rv;
+}
+
 Header read_header(Sv8 contents)
 {
   Header rv = {0}, fail = {0};
   // Get info from the header
-  ContentElement headerinfo = read_content_element(contents, SV8("Name"));
-  if (!headerinfo.ok) {
+  ContentString stringinfo = read_content_string(contents, SV8("Name"));
+  if (!stringinfo.ok) {
     return fail;
   }
-  rv.name = headerinfo.value;
-  headerinfo = read_content_element(contents, SV8("SerialNumber"));
-  if (!headerinfo.ok) {
+  rv.name = stringinfo.value;
+  stringinfo = read_content_string(contents, SV8("SerialNumber"));
+  if (!stringinfo.ok) {
     return fail;
   }
-  rv.serial = headerinfo.value;
-  headerinfo = read_content_element(contents, SV8("DeviceId"));
-  if (!headerinfo.ok) {
+  rv.serial = stringinfo.value;
+  stringinfo = read_content_string(contents, SV8("DeviceId"));
+  if (!stringinfo.ok) {
     return fail;
   }
-  rv.device_id = headerinfo.value;
-  headerinfo = read_content_element(contents, SV8("FirmwareVersion"));
-  if (!headerinfo.ok) {
+  rv.device_id = stringinfo.value;
+  stringinfo = read_content_string(contents, SV8("FirmwareVersion"));
+  if (!stringinfo.ok) {
     return fail;
   }
-  rv.firmware_version = headerinfo.value;
-  headerinfo = read_content_element(contents, SV8("BatteryCapacity"));
-  if (headerinfo.ok) {
-    Sv8Int bc = sv8toi(headerinfo.value);
-    if (bc.ok) {
-      rv.battery_capacity = bc.result;
-    } else {
-      return fail;
-    }
-  }
-  headerinfo = read_content_element(contents, SV8("LastCalibration"));
-  if (!headerinfo.ok) {
+  rv.firmware_version = stringinfo.value;
+  ContentInt intinfo = read_content_int(contents, SV8("BatteryCapacity"));
+  if (!intinfo.ok) {
     return fail;
   }
-  rv.last_calibration = headerinfo.value;
-  headerinfo = read_content_element(contents, SV8("ChannelCount"));
-  if (headerinfo.ok) {
-    Sv8Int bc = sv8toi(headerinfo.value);
-    if (bc.ok) {
-      rv.channel_count = bc.result;
-    } else {
-      return fail;
-    }
+  rv.battery_capacity = intinfo.value;
+  stringinfo = read_content_string(contents, SV8("LastCalibration"));
+  if (!stringinfo.ok) {
+    return fail;
   }
+  rv.last_calibration = stringinfo.value;
+  intinfo = read_content_int(contents, SV8("ChannelCount"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.channel_count = intinfo.value;
   rv.ok = true;
+  // Get info from the Channel
+  intinfo = read_content_int(contents, SV8("DataCount"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.data_count = intinfo.value;
+  intinfo = read_content_int(contents, SV8("TimeFormat"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.timeformat = intinfo.value;
+  intinfo = read_content_int(contents, SV8("NoBits"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.bits = intinfo.value;
+  intinfo = read_content_int(contents, SV8("CommaShift"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.comma_shift = intinfo.value;
+  intinfo = read_content_int(contents, SV8("Interval"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  rv.interval = (int32_t)((uint32_t)intinfo.value & 0xfff);
+  uint32_t unit = ((uint32_t)intinfo.value & 0xf000)>>12;
+  switch (unit) {
+    case 8:
+      rv.interval_units = SV8("minutes");
+      break;
+    case 4:
+      rv.interval_units = SV8("seconds");
+      break;
+    default:
+      rv.interval_units = SV8("unknown");
+  }
+  stringinfo = read_content_string(contents, SV8("DateStart"));
+  if (!stringinfo.ok) {
+    return fail;
+  }
+  rv.date_start = stringinfo.value;
   return rv;
 }
 
@@ -198,9 +264,9 @@ Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
   return rv;
 }
 
-Data read_data(Sv8 contents, Arena *permanent)
+DataBlock read_data_block(Sv8 contents, Arena *permanent)
 {
-  Data rv = {0}, fail = {0};
+  DataBlock rv = {0}, fail = {0};
   Sv8 dend = SV8("</CodedData>");
   Sv8Cut ccut = sv8lpartition(contents, SV8("<CodedData index=\""));
   if (!ccut.ok) {
