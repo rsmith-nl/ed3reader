@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-13T14:31:03+0100
+// Last modified: 2026-03-13T14:54:34+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -48,15 +48,14 @@ int main(int argc, char *argv[])
           header.interval, sv8cstring(header.interval_units));
   fprintf(stderr, "# Start date: %s\n", sv8cstring(header.date_start));
   float divisor = powf(10.0, header.comma_shift);
-  // Read first data block.
+  // Read data blocks.
   DataBlock block = read_data_block(contents, &permanent);
-  if (block.ok) {
+  while (block.ok) {
     fprintf(stderr, "read %d values from block %d\n", block.count, block.index);
     for (int32_t j = 0; j < 10; j++) {
       fprintf(stderr, "Data.b16[%d] = %.1f\n", j, block.b16[j]/divisor);
     }
-  } else {
-    fprintf(stderr, "Failed to read first data block\n");
+    block = read_data_block(block.tail, &permanent);
   }
   debug("ending ed3reader normally...");
   return 0;
