@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-12T23:10:17+0100
+// Last modified: 2026-03-13T01:51:22+0100
 
 
 #include "arena.h"
@@ -14,12 +14,12 @@
 #include "setup.h"
 #include "stringview.h"
 
-#include <stdint.h>
-#include <stdbool.h>
 #include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 //#include <stdio.h>
-//#include <stdlib.h>
 //#include <string.h>
 
 int main(int argc, char *argv[])
@@ -31,28 +31,21 @@ int main(int argc, char *argv[])
   Arena permanent = arena_create(32*1024*1024);
   Sv8 contents = read_file(opt.infile, &permanent);
   info("input file %s has a size of %d bytes", opt.infile, contents.len);
-  // Get info from the header
-  ContentElement headerinfo = read_content_element(contents, SV8("Name"));
-  if (headerinfo.ok) {
-    fprintf(stderr, "Name: %s\n", sv8cstring(headerinfo.value));
+  Header  header = read_header(contents);
+  if (!header.ok) {
+    fprintf(stderr, "Failed to read header");
+    return EXIT_FAILURE;
   }
-  headerinfo = read_content_element(contents, SV8("SerialNumber"));
-  if (headerinfo.ok) {
-    fprintf(stderr, "Serial number: %s\n", sv8cstring(headerinfo.value));
-  }
-  headerinfo = read_content_element(contents, SV8("DeviceId"));
-  if (headerinfo.ok) {
-    fprintf(stderr, "Device Id: %s\n", sv8cstring(headerinfo.value));
-  }
-  headerinfo = read_content_element(contents, SV8("LastCalibration"));
-  if (headerinfo.ok) {
-    fprintf(stderr, "Last calibration: %s\n", sv8cstring(headerinfo.value));
-  }
-  headerinfo = read_content_element(contents, SV8("ChannelCount"));
-  if (headerinfo.ok) {
-    fprintf(stderr, "Channel count: %s\n", sv8cstring(headerinfo.value));
-  }
-  headerinfo = read_content_element(contents, SV8("ChannelType"));
+  fprintf(stderr, "Name: %s\n", sv8cstring(header.name));
+  fprintf(stderr, "Serial number: %s\n", sv8cstring(header.serial));
+  fprintf(stderr, "Device Id: %s\n", sv8cstring(header.device_id));
+  fprintf(stderr, "Firmware version: %s\n", sv8cstring(header.firmware_version));
+  fprintf(stderr, "Battery Capacity %d\n", header.battery_capacity);
+  fprintf(stderr, "Last calibration: %s\n", sv8cstring(header.last_calibration));
+  fprintf(stderr, "Channel count %d\n", header.channel_count);
+
+  // Get info from the channels
+  ContentElement headerinfo = read_content_element(contents, SV8("ChannelType"));
   if (headerinfo.ok) {
     fprintf(stderr, "Channel type: %s\n", sv8cstring(headerinfo.value));
   }

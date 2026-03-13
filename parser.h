@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-12T22:06:00+0100
+// Last modified: 2026-03-13T01:39:18+0100
 
 #pragma once
 
@@ -31,11 +31,12 @@ typedef struct {
 
 typedef struct {
   Sv8 name;
+  Sv8 serial;
   Sv8 device_id;
   Sv8 firmware_version;
   int32_t battery_capacity;
-  int32_t num_channels;
-  Channel *channels;
+  Sv8 last_calibration;
+  int32_t channel_count;
   bool ok;
 } Header;
 
@@ -59,7 +60,7 @@ extern "C" {
 #endif
 
 extern Sv8 read_file(char *path, Arena *permanent);
-//extern Header read_header(Sv8 contents);
+extern Header read_header(Sv8 contents);
 extern ContentElement read_content_element(Sv8 contents, Sv8 name);
 extern Data read_data(Sv8 contents, Arena *permanent);
 

@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-12T23:07:08+0100
+// Last modified: 2026-03-13T01:44:12+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -85,11 +85,56 @@ ContentElement read_content_element(Sv8 contents, Sv8 name)
   return rv;
 }
 
-//Header read_header(Sv8 contents)
-//{
-//  Header rv = {0};
-//  return rv;
-//}
+Header read_header(Sv8 contents)
+{
+  Header rv = {0}, fail = {0};
+  // Get info from the header
+  ContentElement headerinfo = read_content_element(contents, SV8("Name"));
+  if (!headerinfo.ok) {
+    return fail;
+  }
+  rv.name = headerinfo.value;
+  headerinfo = read_content_element(contents, SV8("SerialNumber"));
+  if (!headerinfo.ok) {
+    return fail;
+  }
+  rv.serial = headerinfo.value;
+  headerinfo = read_content_element(contents, SV8("DeviceId"));
+  if (!headerinfo.ok) {
+    return fail;
+  }
+  rv.device_id = headerinfo.value;
+  headerinfo = read_content_element(contents, SV8("FirmwareVersion"));
+  if (!headerinfo.ok) {
+    return fail;
+  }
+  rv.firmware_version = headerinfo.value;
+  headerinfo = read_content_element(contents, SV8("BatteryCapacity"));
+  if (headerinfo.ok) {
+    Sv8Int bc = sv8toi(headerinfo.value);
+    if (bc.ok) {
+      rv.battery_capacity = bc.result;
+    } else {
+      return fail;
+    }
+  }
+  headerinfo = read_content_element(contents, SV8("LastCalibration"));
+  if (!headerinfo.ok) {
+    return fail;
+  }
+  rv.last_calibration = headerinfo.value;
+  headerinfo = read_content_element(contents, SV8("ChannelCount"));
+  if (headerinfo.ok) {
+    Sv8Int bc = sv8toi(headerinfo.value);
+    if (bc.ok) {
+      rv.channel_count = bc.result;
+    } else {
+      return fail;
+    }
+  }
+  rv.ok = true;
+  return rv;
+}
 
 
 // In Python:
