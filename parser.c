@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-13T14:06:54+0100
+// Last modified: 2026-03-13T15:56:50+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -314,13 +314,13 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
     }
   }
   debug("oi = %d", oi);
-  uint16_t *outbuf = arena_new(permanent, uint16_t, current.len);
-  memset(outbuf, 0, current.len*2);
-  int conv = b64decode(compacted, oi, (char*)outbuf, current.len*2);
+  uint16_t outbuf[1024] = {0};
+  int conv = b64decode(compacted, oi, (char*)outbuf, 1024);
   if (conv < 1) {
     debug("failed to decode data.");
     return fail;
   }
+  // Append data to arena, so the data should be contiguous in the arena.
   rv.b16 = arena_new(permanent, uint16_t, conv/2);
   memcpy(rv.b16, outbuf, conv);
   rv.ok = true;
