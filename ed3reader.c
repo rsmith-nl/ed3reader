@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-13T22:18:28+0100
+// Last modified: 2026-03-14T05:42:56+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 static void print_info(Header *header, FILE *outfile);
 
@@ -75,7 +77,17 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void print_info(Header *header, FILE *outfile)
+static char *ftime(time_t t)
+{
+  static char buf[256];
+  struct tm tv = {0};
+  memset(buf, 0, 256);
+  localtime_r(&t, &tv);
+  strftime(buf, 255, "%FT%T", &tv);
+  return buf;
+}
+
+static void print_info(Header *header, FILE *outfile)
 {
   fprintf(outfile, "# Name: %s\n", sv8cstring(header->name));
   fprintf(outfile, "# Serial number: %s\n", sv8cstring(header->serial));
@@ -89,6 +101,6 @@ void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Comma is shifted %d positions to the left.\n", header->comma_shift);
   fprintf(outfile, "# Measurement interval %d %s.\n",
           header->interval, sv8cstring(header->interval_units));
-  fprintf(outfile, "# Start date: %s\n", sv8cstring(header->date_start));
+  fprintf(outfile, "# Start date: %s\n", ftime(header->start));
 }
 

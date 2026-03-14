@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T04:19:24+0100
+// Last modified: 2026-03-14T05:43:36+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -59,7 +59,8 @@ Sv8 read_file(char *path, Arena *permanent)
   return contents;
 }
 
-// This function only reads element in the format <name>value</tag>.
+// This function reads elements in the format <key>value</key>,
+// where value is a string.
 ContentString read_content_string(Sv8 contents, Sv8 name)
 {
   ContentString rv = {0};
@@ -100,6 +101,8 @@ ContentString read_content_string(Sv8 contents, Sv8 name)
   return rv;
 }
 
+// This function reads elements in the format <key>value</key>,
+// where value is an integer.
 ContentInt read_content_int(Sv8 contents, Sv8 name)
 {
   ContentInt rv = {0};
@@ -194,11 +197,15 @@ Header read_header(Sv8 contents)
     default:
       rv.interval_units = SV8("unknown");
   }
-  stringinfo = read_content_string(contents, SV8("DateStart"));
-  if (!stringinfo.ok) {
+  Sv8Cut ccut = sv8cuts(contents, SV8("DateStart unix=\""));
+  if (!ccut.ok) {
     return fail;
   }
-  rv.date_start = stringinfo.value;
+  Sv8Int64 unixtime = sv8toi64(ccut.tail);
+  if (!unixtime.ok) {
+    return fail;
+  }
+  rv.start = unixtime.result;
   return rv;
 }
 

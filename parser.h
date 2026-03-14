@@ -5,11 +5,12 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-13T14:05:23+0100
+// Last modified: 2026-03-14T05:45:08+0100
 
 #pragma once
 
 #include <stdint.h>
+#include <time.h>
 #include "arena.h"
 #include "stringview.h"
 
@@ -28,7 +29,8 @@ typedef struct {
   int32_t comma_shift;
   int32_t interval;
   Sv8 interval_units;
-  Sv8 date_start;
+  time_t start;
+  // Indicator if a call involving this structure succeeded.
   bool ok;
 } Header;
 
