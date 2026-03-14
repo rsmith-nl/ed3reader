@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T05:42:56+0100
+// Last modified: 2026-03-14T06:04:03+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -47,9 +47,8 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
+  print_info(&header, outfile);
   if (outfile != stdout) {
-    print_info(&header, outfile);
-  } else {
     print_info(&header, stderr);
   }
   float divisor = powf(10.0, header.comma_shift);
@@ -61,11 +60,12 @@ int main(int argc, char *argv[])
     total_count += block_samples;
     fprintf(stderr, "# Read %d samples from block %d (total %d)\n",
             block_samples, block.index, total_count);
-    //for (int32_t j = 0; j < block_samples; j++) {
-    //  fprintf(stderr, "Data.b16[%d] = %.1f\n", j, block.b16[j]/divisor);
-    //}
     for (int32_t k = 0; k < block.count; k++) {
-      fprintf(outfile,"%.1f ", block.b16[k]/divisor);
+      if (block.b16[k]==32766) {
+        fputs("NaN ", outfile);
+      } else {
+        fprintf(outfile,"%.1f ", block.b16[k]/divisor);
+      }
       if ((k+1) % header.channel_count == 0) {
         fputs("\n", outfile);
       }
