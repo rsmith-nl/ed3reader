@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T13:37:39+0100
+// Last modified: 2026-03-14T17:40:10+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -97,7 +97,7 @@ static char *ftime(time_t t)
   static char buf[256];
   struct tm tv = {0};
   memset(buf, 0, 256);
-  localtime_r(&t, &tv);
+  gmtime_r(&t, &tv);
   strftime(buf, 255, "%FT%T", &tv);
   return buf;
 }
