@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-03-10T21:41:22+0100
+// Last modified: 2026-03-14T19:05:07+0100
 
 #include "setup.h"
 #include "logging.h"
@@ -45,7 +45,7 @@ const char license[] =
 const char help[] =
   "usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile [outfile]\n"
   "\n"
-  "Program for ...\n"
+  "Program for converting ed3 files from an EB40 temperature logger to plain text.\n"
   "\n"
   "positional argument: \n"
   "  infile  -- input file in ed3 format.\n"
