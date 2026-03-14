@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T06:04:03+0100
+// Last modified: 2026-03-14T11:28:32+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -23,6 +23,7 @@
 #include <time.h>
 
 static void print_info(Header *header, FILE *outfile);
+static char *ftime(time_t t);
 
 int main(int argc, char *argv[])
 {
@@ -54,20 +55,24 @@ int main(int argc, char *argv[])
   float divisor = powf(10.0, header.comma_shift);
   // Read data blocks.
   int32_t total_count = 0;
+  time_t current = header.start;
   DataBlock block = read_data_block(contents, &permanent);
   while (block.ok && total_count < header.data_count) {
     int32_t block_samples = block.count/header.channel_count;
     total_count += block_samples;
     fprintf(stderr, "# Read %d samples from block %d (total %d)\n",
             block_samples, block.index, total_count);
+    fputs(ftime(current), outfile);
     for (int32_t k = 0; k < block.count; k++) {
       if (block.b16[k]==32766) {
         fputs("NaN ", outfile);
       } else {
-        fprintf(outfile,"%.1f ", block.b16[k]/divisor);
+        fprintf(outfile," %.1f", block.b16[k]/divisor);
       }
       if ((k+1) % header.channel_count == 0) {
         fputs("\n", outfile);
+        current += header.seconds;
+        fputs(ftime(current), outfile);
       }
     }
     block = read_data_block(block.tail, &permanent);
