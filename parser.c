@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T11:21:35+0100
+// Last modified: 2026-03-14T13:19:27+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -165,7 +165,7 @@ Header read_header(Sv8 contents)
   if (!intinfo.ok) {
     return fail;
   }
-  rv.data_count = intinfo.value;
+  rv.samples_count = intinfo.value;
   intinfo = read_content_int(contents, SV8("TimeFormat"));
   if (!intinfo.ok) {
     return fail;
