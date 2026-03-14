@@ -2,7 +2,7 @@
 BASENAME = ed3reader
 VMAJOR   = 2026
 VMINOR   = 03
-VPATCH   = 10
+VPATCH   = 14
 
 # Define the C compiler to be used, if not cc.
 #CC = gcc

@@ -1,4 +1,3 @@
 *.o
 ed3reader
 ed3reader-debug
-version.h
