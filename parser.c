@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-13T15:56:50+0100
+// Last modified: 2026-03-14T04:19:24+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -248,27 +248,11 @@ static int b64decode(const char *in, int32_t inlen, char *out, int32_t outlen)
   return outcnt;
 }
 
-// Cut, but then on a stringview.
-Sv8Cut sv8lpartition(Sv8 s, Sv8 c)
-{
-  Sv8Cut rv = {0};
-  ptrdiff_t ix = sv8find(s, c);
-  if (ix==-1) {
-    return rv;
-  }
-  rv.head = s;
-  rv.head.len = ix;
-  rv.tail.data = s.data + ix + c.len;
-  rv.tail.len = s.len - ix - c.len;
-  rv.ok = true;
-  return rv;
-}
-
 DataBlock read_data_block(Sv8 contents, Arena *permanent)
 {
   DataBlock rv = {0}, fail = {0};
   Sv8 dend = SV8("</CodedData>");
-  Sv8Cut ccut = sv8lpartition(contents, SV8("<CodedData index=\""));
+  Sv8Cut ccut = sv8cuts(contents, SV8("<CodedData index=\""));
   if (!ccut.ok) {
     debug("failed to find start of data.");
     return fail;
@@ -280,7 +264,7 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
   }
   rv.index = num.result;
   debug("rv.index = %d", rv.index);
-  ccut = sv8lpartition(contents, SV8("count=\""));
+  ccut = sv8cuts(contents, SV8("count=\""));
   if (!ccut.ok) {
     debug("failed to find count.");
     return fail;
