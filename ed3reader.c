@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T18:24:40+0100
+// Last modified: 2026-03-14T18:58:19+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -23,7 +23,7 @@
 #include <time.h>
 
 static void print_info(Header *header, FILE *outfile);
-static char *ftime(time_t t);
+static char *fmttime(time_t t);
 
 int main(int argc, char *argv[])
 {
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
   time_t current = header.start;
   int32_t count = 0;
   while (count < total_values) {
-    fputs(ftime(current), outfile);
+    fputs(fmttime(current), outfile);
     for (int32_t j = 0; j < header.channel_count; j++) {
       if (data[count]==32766) {
         fputs(" NaN", outfile);
@@ -93,13 +93,12 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static char *ftime(time_t t)
+static char *fmttime(time_t t)
 {
   static char buf[256];
-  struct tm tv = {0};
   memset(buf, 0, 256);
-  gmtime_r(&t, &tv);
-  strftime(buf, 255, "%FT%T", &tv);
+  struct tm *tv = gmtime(&t);
+  strftime(buf, 255, "%FT%T", tv);
   return buf;
 }
 
@@ -118,6 +117,5 @@ static void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Comma shift %d positions to the left.\n", header->comma_shift);
   fprintf(outfile, "# Measurement interval %d %s.\n",
           header->interval, sv8cstring(header->interval_units));
-  fprintf(outfile, "# Start date: %s\n", ftime(header->start));
+  fprintf(outfile, "# Start date: %s\n", fmttime(header->start));
 }
-

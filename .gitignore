@@ -1,3 +1,6 @@
 *.o
 ed3reader
+ed3reader.exe
 ed3reader-debug
+ed3reader-debug.exe
+releases/
