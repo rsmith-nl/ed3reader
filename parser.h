@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-14T05:45:08+0100
+// Last modified: 2026-03-14T11:20:07+0100
 
 #pragma once
 
@@ -27,7 +27,7 @@ typedef struct {
   int32_t timeformat;
   int32_t bits;
   int32_t comma_shift;
-  int32_t interval;
+  int32_t interval, seconds;
   Sv8 interval_units;
   time_t start;
   // Indicator if a call involving this structure succeeded.

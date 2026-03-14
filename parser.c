@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T05:43:36+0100
+// Last modified: 2026-03-14T11:21:35+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -61,7 +61,7 @@ Sv8 read_file(char *path, Arena *permanent)
 
 // This function reads elements in the format <key>value</key>,
 // where value is a string.
-ContentString read_content_string(Sv8 contents, Sv8 name)
+static ContentString read_content_string(Sv8 contents, Sv8 name)
 {
   ContentString rv = {0};
   Sv8 current = contents;
@@ -103,7 +103,7 @@ ContentString read_content_string(Sv8 contents, Sv8 name)
 
 // This function reads elements in the format <key>value</key>,
 // where value is an integer.
-ContentInt read_content_int(Sv8 contents, Sv8 name)
+static ContentInt read_content_int(Sv8 contents, Sv8 name)
 {
   ContentInt rv = {0};
   ContentString string = read_content_string(contents, name);
@@ -190,9 +190,11 @@ Header read_header(Sv8 contents)
   switch (unit) {
     case 8:
       rv.interval_units = SV8("minutes");
+      rv.seconds = rv.interval * 60;
       break;
     case 4:
       rv.interval_units = SV8("seconds");
+      rv.seconds = rv.interval;
       break;
     default:
       rv.interval_units = SV8("unknown");
