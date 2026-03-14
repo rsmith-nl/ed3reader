@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2025-04-07 22:53:56 +0200
-// Last modified: 2026-03-14T04:13:23+0100
+// Last modified: 2026-03-14T05:28:17+0100
 
 #include "stringview.h"
 
@@ -248,7 +248,8 @@ Sv8Int sv8toi(Sv8 s)
   s = sv8lstrip(s);
   char *beg = s.data;
   char *end = s.data + s.len;
-  int32_t state = 0, number = 0;
+  int32_t state = 0;
+  int64_t number = 0;
   bool negative = false;
   bool stop = false;
   while (beg<end && !stop) {
@@ -294,6 +295,87 @@ Sv8Int sv8toi(Sv8 s)
         if (c>='0' && c <='9') {
           state = 3;
           if ((1<<30)/number < 10) { // will overflow.
+            goto fail2;
+          }
+          number = number*10 + c - '0';
+        } else {
+          stop = true; // non-numeric character
+        }
+        break;
+    } // switch
+  } // while
+  if (stop==true) {
+    beg--;
+  }
+  rv.result = number;
+  if (negative) {
+    rv.result *= -1;
+  }
+  rv.tail = sv8span(beg, end);
+  rv.ok = true;
+  return rv;
+fail2:
+  rv.ok = false;
+  rv.result = 0;
+  rv.tail = s;
+  return rv;
+}
+
+Sv8Int64 sv8toi64(Sv8 s)
+{
+  // This scanner is implemented as a state machine.
+  // See sv8toi.pdf to see its diagram.
+  Sv8Int64 rv = {0};
+  s = sv8lstrip(s);
+  char *beg = s.data;
+  char *end = s.data + s.len;
+  int32_t state = 0;
+  int64_t number = 0;
+  bool negative = false;
+  bool stop = false;
+  while (beg<end && !stop) {
+    char c = *beg++;
+    switch (state) {
+      case 0:   // Start state.
+        if (c=='+') {
+          state = 1;
+        } else if (c=='-') {
+          negative = true;
+          state = 1;
+        } else if (c=='0') {
+          state = 2;
+        } else if (c>='1' && c <='9') {
+          state = 3;
+          number = c - '0';
+        } else {
+          goto fail2;
+        }
+        break;
+      case 1:   // After a leading + or -.
+        if (c=='0') {
+          state = 2;
+        } else if (c>='1' && c <='9') {
+          state = 3;
+          number = c - '0';
+        } else {
+          goto fail2;
+        }
+        break;
+      case 2:   // Skip leading zeros.
+        if (c=='0') {
+          state = 2;
+        } else if (c>='1' && c <='9') {
+          state = 3;
+          number = c - '0';
+        } else {
+          // return 0.
+          stop = true;
+        }
+        break;
+      case 3:   // Process digits.
+        if (c>='0' && c <='9') {
+          state = 3;
+          if ((((int64_t)1)<<60)/number < 10) { // will overflow.
             goto fail2;
           }
           number = number*10 + c - '0';
