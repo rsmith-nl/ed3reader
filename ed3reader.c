@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T11:28:32+0100
+// Last modified: 2026-03-14T13:37:39+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -53,29 +53,39 @@ int main(int argc, char *argv[])
     print_info(&header, stderr);
   }
   float divisor = powf(10.0, header.comma_shift);
-  // Read data blocks.
-  int32_t total_count = 0;
-  time_t current = header.start;
+  // Read all data blocks.
+  int32_t total_values = 0;
   DataBlock block = read_data_block(contents, &permanent);
-  while (block.ok && total_count < header.data_count) {
+  uint16_t *data = block.b16;
+  while (block.ok && total_values < header.samples_count*header.channel_count) {
     int32_t block_samples = block.count/header.channel_count;
-    total_count += block_samples;
-    fprintf(stderr, "# Read %d samples from block %d (total %d)\n",
-            block_samples, block.index, total_count);
-    fputs(ftime(current), outfile);
-    for (int32_t k = 0; k < block.count; k++) {
-      if (block.b16[k]==32766) {
-        fputs("NaN ", outfile);
-      } else {
-        fprintf(outfile," %.1f", block.b16[k]/divisor);
-      }
-      if ((k+1) % header.channel_count == 0) {
-        fputs("\n", outfile);
-        current += header.seconds;
-        fputs(ftime(current), outfile);
-      }
-    }
+    total_values += block_samples;
     block = read_data_block(block.tail, &permanent);
+  }
+  if (total_values > header.samples_count) {
+    total_values = header.samples_count*header.channel_count;
+  }
+  // Print header
+  fputs("# ISO8601 datetime ", outfile);
+  for (int32_t j = 1; j <= header.channel_count; j++) {
+    fprintf(outfile, " ch%1d ", j);
+  }
+  fputs("\n", outfile);
+  // Print the data.
+  time_t current = header.start;
+  int32_t count = 0;
+  while (count < total_values) {
+    fputs(ftime(current), outfile);
+    for (int32_t j = 0; j < header.channel_count; j++) {
+      if (data[count]==32766) {
+        fputs(" NaN", outfile);
+      } else {
+        fprintf(outfile, " %.1f", data[count]/divisor);
+      }
+      count++;
+    }
+    fputs("\n", outfile);
+    current += header.seconds;
   }
   debug("ending ed3reader normally...");
   fclose(outfile);
@@ -101,9 +111,9 @@ static void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Battery Capacity: %d\n", header->battery_capacity);
   fprintf(outfile, "# Last calibration: %s\n", sv8cstring(header->last_calibration));
   fprintf(outfile, "# Channel count: %d\n", header->channel_count);
-  fprintf(outfile, "# Data count: %d samples\n", header->data_count);
+  fprintf(outfile, "# Data count: %d samples\n", header->samples_count);
   fprintf(outfile, "# Bits per sample: %d\n", header->bits);
-  fprintf(outfile, "# Comma is shifted %d positions to the left.\n", header->comma_shift);
+  fprintf(outfile, "# Comma shift %d positions to the left.\n", header->comma_shift);
   fprintf(outfile, "# Measurement interval %d %s.\n",
           header->interval, sv8cstring(header->interval_units));
   fprintf(outfile, "# Start date: %s\n", ftime(header->start));
