@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T18:03:36+0100
+// Last modified: 2026-03-14T18:24:40+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -105,7 +105,7 @@ static char *ftime(time_t t)
 
 static void print_info(Header *header, FILE *outfile)
 {
-  fprintf(outfile, "# Name: %s\n", sv8cstring(header->name));
+  fprintf(outfile, "# Device type: %s\n", sv8cstring(header->name));
   fprintf(outfile, "# Serial number: %s\n", sv8cstring(header->serial));
   fprintf(outfile, "# Device Id: %s\n", sv8cstring(header->device_id));
   fprintf(outfile, "# Firmware version: %s\n", sv8cstring(header->firmware_version));
