@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T17:11:00+0100
+// Last modified: 2026-03-14T17:47:51+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -296,14 +296,14 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
   current.len = endix;
   // Current now contains base64 encoded data, with embedded newlines.
   debug("current.len = %d", current.len);
-  uint16_t outbuf[1024] = {0};
+  int16_t outbuf[1024] = {0};
   int conv = b64decode(current.data, current.len, (char*)outbuf, 1024);
   if (conv < 1) {
     debug("failed to decode data.");
     return fail;
   }
   // Append data to arena, so the data should be contiguous in the arena.
-  rv.b16 = arena_new(permanent, uint16_t, conv/2);
+  rv.b16 = arena_new(permanent, int16_t, conv/2);
   memcpy(rv.b16, outbuf, conv);
   rv.ok = true;
   return rv;

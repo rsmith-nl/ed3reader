@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T17:40:10+0100
+// Last modified: 2026-03-14T17:47:01+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   // Read all data blocks.
   int32_t total_values = 0;
   DataBlock block = read_data_block(contents, &permanent);
-  uint16_t *data = block.b16;
+  int16_t *data = block.b16;
   while (block.ok && total_values < header.samples_count*header.channel_count) {
     int32_t block_samples = block.count/header.channel_count;
     total_values += block_samples;

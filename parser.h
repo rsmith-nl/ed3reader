@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-14T13:19:16+0100
+// Last modified: 2026-03-14T17:46:09+0100
 
 #pragma once
 
@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
   int32_t index;
   int32_t count; // This is the number of values, not the number of samples.
-  uint16_t *b16;
+  int16_t *b16;
   Sv8 tail;
   bool ok;
 } DataBlock;
