@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T13:19:27+0100
+// Last modified: 2026-03-14T17:11:00+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -211,9 +211,6 @@ Header read_header(Sv8 contents)
   return rv;
 }
 
-
-// In Python:
-// invB64 = [B64.index(chr(j)) if chr(j) in B64 else -1 for j in range(128)]
 static const char invB64[128] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -237,7 +234,7 @@ static int b64decode(const char *in, int32_t inlen, char *out, int32_t outlen)
       // Filler
       obuf[ix++] = 0;
     } else if (cur < 0 || invB64[cur] == -1) {
-      return -1; // Input contains illegal character
+      continue; // Ignore illegal characters.
     } else {
       obuf[ix++] = invB64[cur];
     }
@@ -299,16 +296,8 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
   current.len = endix;
   // Current now contains base64 encoded data, with embedded newlines.
   debug("current.len = %d", current.len);
-  char *compacted = arena_new(permanent, char, current.len+1);
-  int32_t oi = 0;
-  for (int32_t j = 0; j < current.len; j++) {
-    if (current.data[j] != '\n') {
-      compacted[oi++] = current.data[j];
-    }
-  }
-  debug("oi = %d", oi);
   uint16_t outbuf[1024] = {0};
-  int conv = b64decode(compacted, oi, (char*)outbuf, 1024);
+  int conv = b64decode(current.data, current.len, (char*)outbuf, 1024);
   if (conv < 1) {
     debug("failed to decode data.");
     return fail;
