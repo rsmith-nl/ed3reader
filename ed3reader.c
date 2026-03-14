@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-14T17:47:01+0100
+// Last modified: 2026-03-14T18:03:36+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
+  fprintf(outfile, "# File path: %s\n", opt.infile);
   print_info(&header, outfile);
   if (outfile != stdout) {
     print_info(&header, stderr);
@@ -112,6 +113,7 @@ static void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Last calibration: %s\n", sv8cstring(header->last_calibration));
   fprintf(outfile, "# Channel count: %d\n", header->channel_count);
   fprintf(outfile, "# Data count: %d samples\n", header->samples_count);
+  fprintf(outfile, "# Temperature unit: %s\n", sv8cstring(header->unit));
   fprintf(outfile, "# Bits per sample: %d\n", header->bits);
   fprintf(outfile, "# Comma shift %d positions to the left.\n", header->comma_shift);
   fprintf(outfile, "# Measurement interval %d %s.\n",

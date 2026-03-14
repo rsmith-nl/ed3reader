@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T17:47:51+0100
+// Last modified: 2026-03-14T18:02:39+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -171,6 +171,20 @@ Header read_header(Sv8 contents)
     return fail;
   }
   rv.timeformat = intinfo.value;
+
+  intinfo = read_content_int(contents, SV8("Unit"));
+  if (!intinfo.ok) {
+    return fail;
+  }
+  switch (intinfo.value) {
+    case 1:
+      // degrees Centigrade
+      rv.unit = SV8("°C");
+      break;
+    default:
+      rv.unit = SV8("°F");
+      break;
+  }
   intinfo = read_content_int(contents, SV8("NoBits"));
   if (!intinfo.ok) {
     return fail;

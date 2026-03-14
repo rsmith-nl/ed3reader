@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:51 +0100
-// Last modified: 2026-03-14T17:46:09+0100
+// Last modified: 2026-03-14T18:01:41+0100
 
 #pragma once
 
@@ -25,6 +25,7 @@ typedef struct {
   // From the channels
   int32_t samples_count; // number of samples.
   int32_t timeformat;
+  Sv8 unit;
   int32_t bits;
   int32_t comma_shift;
   int32_t interval, seconds;
