@@ -171,7 +171,6 @@ Header read_header(Sv8 contents)
     return fail;
   }
   rv.timeformat = intinfo.value;
-
   intinfo = read_content_int(contents, SV8("Unit"));
   if (!intinfo.ok) {
     return fail;
