@@ -5,7 +5,7 @@ Reading EBI 40 temperature logger files
 :tags: C, reverse engineering, temperature logger
 :author: Roland Smith
 
-.. Last modified: 2026-03-16T18:05:17+0100
+.. Last modified: 2026-03-17T21:40:35+0100
 .. vim:spelllang=en
 
 At work we use an EBI 40 6-channel temperature logger.
@@ -100,25 +100,24 @@ So normal usage is::
 
 The output looks like this::
 
-    # Channel count: 2
-    # Data count: 42 samples
-    # Temperature unit: °C
-    # Bits per sample: 16
-    # Comma shift 1 positions to the left.
-    # Measurement interval 1 minutes.
-    # Start date: 2025-05-19T15:06:03
-    # ISO8601 datetime  ch1  ch2
-    2025-05-19T15:06:03 23.5 31.1
-    2025-05-19T15:07:03 63.7 31.5
-    2025-05-19T15:08:03 67.2 33.2
-    2025-05-19T15:09:03 69.2 35.9
-    2025-05-19T15:10:03 72.8 39.1
-    2025-05-19T15:11:03 73.8 42.4
+    ISO8601 datetime        excel datevalue ch1     ch2
+    2025-05-19T15:06:03     45796.629201    23.5    31.1
+    2025-05-19T15:07:03     45796.629896    63.7    31.5
+    2025-05-19T15:08:03     45796.630590    67.2    33.2
+    2025-05-19T15:09:03     45796.631285    69.2    35.9
+    2025-05-19T15:10:03     45796.631979    72.8    39.1
+    2025-05-19T15:11:03     45796.632674    73.8    42.4
+    2025-05-19T15:12:03     45796.633368    74.0    45.4
+    2025-05-19T15:13:03     45796.634063    75.8    48.4
+    2025-05-19T15:14:03     45796.634757    74.9    51.1
+    2025-05-19T15:15:03     45796.635451    74.8    53.6
     ...
 
-Lines starting with ``#`` are comments.
 The first column contains the datetime of the sample is ISO 8601 format.
+The second colum is the same date and time as an ms-excel datevalue, that is days
+since 1900-1-1 (plus 2, because of excel bugs).
 This is followed by as many columns as there are active channels.
+The columns are separated by horizontal tabs (ascii character 9).
 
 The author would normally use ``gnuplot`` to create a graph from this data.
 But you could also import the data into a spreadsheet program.
