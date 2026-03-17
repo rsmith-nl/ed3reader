@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-17T19:33:03+0100
+// Last modified: 2026-03-17T20:12:05+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
     total_values = header.samples_count*header.channel_count;
   }
   // Print header
-  fputs("ISO8601 datetime ", outfile);
+  fputs("ISO8601 datetime\texcel datevalue", outfile);
   for (int32_t j = 1; j <= header.channel_count; j++) {
     fprintf(outfile, "\tch%1d", j);
   }
@@ -107,10 +108,13 @@ int main(int argc, char *argv[])
 
 static char *fmttime(time_t t)
 {
-  static char buf[256];
-  memset(buf, 0, 256);
+  static char buf[128];
+  memset(buf, 0, 128);
   struct tm *tv = gmtime(&t);
-  strftime(buf, 255, "%Y-%m-%dT%H:%M:%S", tv);
+  size_t rv = strftime(buf, 40, "%Y-%m-%dT%H:%M:%S", tv);
+  double exceldays = (double)t/86400.0;
+  exceldays += 25569.0; // days between excel epoch and UNIX epoch.
+  snprintf(buf+rv, 127-rv, "\t%.6f", exceldays);
   return buf;
 }
 
