@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-17T20:12:05+0100
+// Last modified: 2026-03-17T21:54:50+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Failed to read header");
     return EXIT_FAILURE;
   }
-  //print_info(&header, stderr);
   FILE *outfile = stdout;
   if (opt.outfile) {
     outfile = fopen(opt.outfile, "w");
@@ -61,10 +60,11 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
-  fprintf(outfile, "# File path: %s\n", opt.infile);
-  print_info(&header, outfile);
-  if (outfile != stdout) {
-    print_info(&header, stderr);
+  fprintf(stderr, "# File path: %s\n", opt.infile);
+  print_info(&header, stderr);
+  if (opt.comments == true && opt.outfile) {
+    fprintf(outfile, "# File path: %s\n", opt.infile);
+    print_info(&header, outfile);
   }
   float divisor = powf(10.0, header.comma_shift);
   // Read all data blocks.

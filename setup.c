@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-03-14T23:10:37+0100
+// Last modified: 2026-03-17T21:51:50+0100
 
 #include "setup.h"
 #include "logging.h"
@@ -55,6 +55,7 @@ const char help[] =
   "  -h, --help            show this help message and exit\n"
   "  -v, --version         show program's version number and exit\n"
   "  -l, --license         print the license\n"
+  "  -c, --comments        write header as comments in the output file\n"
   "  --log                 logging level debug,info,(default) warn,error,crit\n\n";
 
 
@@ -66,13 +67,14 @@ Options setup(int argc, char *argv[])
     {"help", no_argument, 0, 'h'},
     {"version", no_argument, 0, 'v'},
     {"license", no_argument, 0, 'l'},
+    {"comments", no_argument, 0, 'c'},
     {"log", required_argument, 0, 1000},
     {0,0,0,0}
   };
   logging_configure(name, LOG_WARNING);
   while (1) {
     int32_t option_index = 0;
-    choice = getopt_long(argc, argv, "hlv", long_options, &option_index);
+    choice = getopt_long(argc, argv, "hvlc", long_options, &option_index);
     if (choice == -1) {
       break;
     }
@@ -90,6 +92,9 @@ Options setup(int argc, char *argv[])
       case 'v':
         printf("%s version: %s\n", name, VERSION);
         exit(0);
+        break;
+      case 'c':
+        rv.comments = true;
         break;
       case 1000:
         if (strcasecmp(optarg, "debug")==0) {

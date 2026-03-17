@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-02-22 15:24:00 +0100
-// Last modified: 2026-03-10T20:49:40+0100
+// Last modified: 2026-03-17T21:45:00+0100
 
 #pragma once
 
@@ -13,6 +13,7 @@
 
 typedef struct {
   bool verbose;
+  bool comments;
   int argc;
   char *infile, *outfile;
   char **argv;
