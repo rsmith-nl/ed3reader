@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-17T19:20:36+0100
+// Last modified: 2026-03-17T19:25:18+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
     total_values = header.samples_count*header.channel_count;
   }
   // Print header
-  fputs("# ISO8601 datetime ", outfile);
+  fputs("ISO8601 datetime ", outfile);
   for (int32_t j = 1; j <= header.channel_count; j++) {
-    fprintf(outfile, " ch%1d ", j);
+    fprintf(outfile, "\tch%1d", j);
   }
   fputs("\n", outfile);
   // Print the data.
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
       if (data[count]==32766) {
         fputs(" NaN", outfile);
       } else {
-        fprintf(outfile, " %.1f", data[count]/divisor);
+        fprintf(outfile, "\t%.1f", data[count]/divisor);
       }
       count++;
     }
