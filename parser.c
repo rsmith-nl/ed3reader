@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-14T18:02:39+0100
+// Last modified: 2026-03-17T22:27:42+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -40,8 +41,8 @@ Sv8 read_file(char *path, Arena *permanent)
   Sv8 contents = {0};
   FILE *inputfile = fopen(path, "r");
   if (inputfile==0) {
-    info("could not open file %s", path);
-    return contents;
+    error("could not open file %s for reading", path);
+    exit(EXIT_FAILURE);
   }
   fseek(inputfile, 0L, SEEK_END);
   // Make space for extra newline.
