@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-17T19:25:18+0100
+// Last modified: 2026-03-17T19:33:03+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -22,11 +22,23 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _WIN32
+#include <io.h> // for _setmode
+// instead of including windows.h....
+extern int __stdcall SetConsoleOutputCP(unsigned int);
+#endif
+
 static void print_info(Header *header, FILE *outfile);
 static char *fmttime(time_t t);
 
 int main(int argc, char *argv[])
 {
+#ifdef _WIN32
+  _setmode(0, 0x8000);
+  _setmode(1, 0x8000);
+  _setmode(2, 0x8000);
+  SetConsoleOutputCP(65001);
+#endif
   (void)argc;
   (void)argv;
   Options opt = setup(argc, argv);
