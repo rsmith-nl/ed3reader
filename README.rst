@@ -5,7 +5,7 @@ Reading EBI 40 temperature logger files
 :tags: C, reverse engineering, temperature logger
 :author: Roland Smith
 
-.. Last modified: 2026-03-17T21:40:35+0100
+.. Last modified: 2026-03-17T22:00:27+0100
 .. vim:spelllang=en
 
 At work we use an EBI 40 6-channel temperature logger.
@@ -78,10 +78,11 @@ Open a terminal and type in the following, ending with the ``<enter>`` key::
 
 This should print the following online help to the terminal::
 
-    ed3reader-c version: 2026.03.14
     usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile [outfile]
 
     Program for converting ed3 files from an EBI 40 temperature logger to plain text.
+    Information from the data file header will be written to stderr, unless
+    the -c option is used. In that case it is added as comments to the output file.
 
     positional argument:
     infile  -- input file in ed3 format.
@@ -91,14 +92,14 @@ This should print the following online help to the terminal::
     -h, --help            show this help message and exit
     -v, --version         show program's version number and exit
     -l, --license         print the license
+    -c, --comments        write header info as comments in the output file
     --log                 logging level debug,info,(default) warn,error,crit
-
 
 So normal usage is::
 
    ed3reader Custom00.ed3 output.txt
 
-The output looks like this::
+The contents of ``output.txt`` look like this::
 
     ISO8601 datetime        excel datevalue ch1     ch2
     2025-05-19T15:06:03     45796.629201    23.5    31.1
