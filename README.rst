@@ -5,7 +5,7 @@ Reading EBI 40 temperature logger files
 :tags: C, reverse engineering, temperature logger
 :author: Roland Smith
 
-.. Last modified: 2026-03-17T22:46:05+0100
+.. Last modified: 2026-03-19T21:14:58+0100
 .. vim:spelllang=en
 
 At work we use an EBI 40 6-channel temperature logger.
@@ -78,7 +78,7 @@ Open a terminal and type in the following, ending with the ``<enter>`` key::
 
 This should print the following online help to the terminal::
 
-    usage: ed3reader [-h] [-v] [-l] [--log=(debug|info|warn|error|crit)] infile [outfile]
+    usage: ed3reader [-h] [-v] [-l] [-c] [--log=(debug|info|warn|error|crit)] infile [outfile]
 
     Program for converting ed3 files from an EBI 40 temperature logger to plain text.
     Information from the data file header will be written to stderr, unless
@@ -92,40 +92,57 @@ This should print the following online help to the terminal::
     -h, --help            show this help message and exit
     -v, --version         show program's version number and exit
     -l, --license         print the license
-    -c, --comments        write header info as comments in the output file
+    -c, --csv             write output in CSV format
     --log                 logging level debug,info,(default) warn,error,crit
 
-So normal usage is::
 
-   ed3reader Custom00.ed3 output.txt
+For ms-windows users, normal usage is::
 
-The contents of ``output.txt`` look like this::
+   ed3reader -c Custom00.ed3 output.csv
 
-    ISO8601 datetime        excel datevalue ch1     ch2
-    2025-05-19T15:06:03     45796.629201    23.5    31.1
-    2025-05-19T15:07:03     45796.629896    63.7    31.5
-    2025-05-19T15:08:03     45796.630590    67.2    33.2
-    2025-05-19T15:09:03     45796.631285    69.2    35.9
-    2025-05-19T15:10:03     45796.631979    72.8    39.1
-    2025-05-19T15:11:03     45796.632674    73.8    42.4
-    2025-05-19T15:12:03     45796.633368    74.0    45.4
-    2025-05-19T15:13:03     45796.634063    75.8    48.4
-    2025-05-19T15:14:03     45796.634757    74.9    51.1
-    2025-05-19T15:15:03     45796.635451    74.8    53.6
+The contents of ``output.csv`` look like this::
+
+    ...
+    Excel datevalue,ch1,ch2
+    45796.629201,23.5,31.1
+    45796.629896,63.7,31.5
+    45796.630590,67.2,33.2
+    45796.631285,69.2,35.9
+    45796.631979,72.8,39.1
+    45796.632674,73.8,42.4
+    45796.633368,74.0,45.4
+    45796.634063,75.8,48.4
+    45796.634757,74.9,51.1
+    45796.635451,74.8,53.6
+    45796.636146,74.6,55.8
     ...
 
-The first column contains the datetime of the sample is ISO 8601 format.
-The second colum is the same date and time as an ms-excel datevalue, that is days
+The first column contains date and time as an ms-excel datevalue, that is days
 since 1900-1-1 (plus 2, because of excel bugs).
 This is followed by as many columns as there are active channels.
-The columns are separated by horizontal tabs (ascii character 9).
+The columns are separated by comma's.
+This kind of output can easily be loaded into ms-excel.
 
-The author would normally use ``gnuplot`` to create a graph from this data.
-But you could also import the data into a spreadsheet program.
+The CSV output can also be loaded in other spreadsheets like ``gnumeric``.
+Otherwise, on POSIX platforms the following use is generally recommended::
 
+   ed3reader Custom00.ed3 output.d
 
-Using ed3reader output with gnuplot
-===================================
+This generates the following output, where the data/time in ISO 8601 format is
+followed by the colums with temperature data, separated by horizontal tabs::
+
+    # ISO8601 datetime      ch1     ch2
+    2025-05-19T15:06:03     23.5    31.1
+    2025-05-19T15:07:03     63.7    31.5
+    2025-05-19T15:08:03     67.2    33.2
+    2025-05-19T15:09:03     69.2    35.9
+    2025-05-19T15:10:03     72.8    39.1
+    2025-05-19T15:11:03     73.8    42.4
+    2025-05-19T15:12:03     74.0    45.4
+    2025-05-19T15:13:03     75.8    48.4
+    2025-05-19T15:14:03     74.9    51.1
+    2025-05-19T15:15:03     74.8    53.6
+    2025-05-19T15:16:03     74.6    55.8
 
 To use the output data with ``gnuplot``, the data for the x-axis needs to be
 set to ``time``, and the ``timefmt`` should be set::
@@ -133,22 +150,11 @@ set to ``time``, and the ``timefmt`` should be set::
     set timefmt "%Y-%m-%dT%H:%M:%S"
     set xdata time
 
-If showing the year on each label on the x-axis is not needed, also add this::
+If showing the date on each label on the x-axis is not needed, also add this::
 
-    set format x "%m-%d\n%H:%M"
+    set format x "%H:%M"
 
 Plotting the actual data is done like this::
 
-   plot 'ed3.txt' using 1:3 w l ls 1 title "channel 1", \
-   '' using 1:4  every 4 w l ls 2 title "channel 2"
-
-
-Using ed3reader output with ms-excel
-====================================
-
-When importing the file in excel, set the format to ``delimited``, and set the
-horizontal tab as the delimiter character.
-Mark the first column as not to be imported.
-If necessary, change the input settings as using a decimal point, not a comma.
-
-After the import, the fist column should be set to date value format.
+   plot 'ed3.txt' using 1:2 w l ls 1 title "channel 1", \
+   '' using 1:3 w l ls 2 title "channel 2"

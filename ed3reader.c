@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-17T21:54:50+0100
+// Last modified: 2026-03-19T20:24:54+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -30,7 +30,9 @@ extern int __stdcall SetConsoleOutputCP(unsigned int);
 #endif
 
 static void print_info(Header *header, FILE *outfile);
+static void print_info_csv(Header *header, FILE *outfile);
 static char *fmttime(time_t t);
+static char *fmttime_csv(time_t t);
 
 int main(int argc, char *argv[])
 {
@@ -61,11 +63,6 @@ int main(int argc, char *argv[])
     }
   }
   fprintf(stderr, "# File path: %s\n", opt.infile);
-  print_info(&header, stderr);
-  if (opt.comments == true && opt.outfile) {
-    fprintf(outfile, "# File path: %s\n", opt.infile);
-    print_info(&header, outfile);
-  }
   float divisor = powf(10.0, header.comma_shift);
   // Read all data blocks.
   int32_t total_values = 0;
@@ -79,27 +76,54 @@ int main(int argc, char *argv[])
   if (total_values > header.samples_count) {
     total_values = header.samples_count*header.channel_count;
   }
-  // Print header
-  fputs("ISO8601 datetime\texcel datevalue", outfile);
-  for (int32_t j = 1; j <= header.channel_count; j++) {
-    fprintf(outfile, "\tch%1d", j);
-  }
-  fputs("\n", outfile);
-  // Print the data.
-  time_t current = header.start;
-  int32_t count = 0;
-  while (count < total_values) {
-    fputs(fmttime(current), outfile);
-    for (int32_t j = 0; j < header.channel_count; j++) {
-      if (data[count]==32766) {
-        fputs(" NaN", outfile);
-      } else {
-        fprintf(outfile, "\t%.1f", data[count]/divisor);
+  if (opt.csv) {
+    // Print CSV header
+    print_info_csv(&header, outfile);
+    fputs("Excel datevalue", outfile);
+    for (int32_t j = 1; j <= header.channel_count; j++) {
+      fprintf(outfile, ",ch%1d", j);
+    }
+    fputs("\r\n", outfile);
+    // Print the data.
+    time_t current = header.start;
+    int32_t count = 0;
+    while (count < total_values) {
+      fputs(fmttime_csv(current), outfile);
+      for (int32_t j = 0; j < header.channel_count; j++) {
+        if (data[count]==32766) {
+          fputs(",NaN", outfile);
+        } else {
+          fprintf(outfile, ",%.1f", data[count]/divisor);
+        }
+        count++;
       }
-      count++;
+      fputs("\r\n", outfile);
+      current += header.seconds;
+    }
+  } else {
+    // Print gnuplot header
+    print_info(&header, outfile);
+    fputs("# ISO8601 datetime", outfile);
+    for (int32_t j = 1; j <= header.channel_count; j++) {
+      fprintf(outfile, "\tch%1d", j);
     }
     fputs("\n", outfile);
-    current += header.seconds;
+    // Print the data.
+    time_t current = header.start;
+    int32_t count = 0;
+    while (count < total_values) {
+      fputs(fmttime(current), outfile);
+      for (int32_t j = 0; j < header.channel_count; j++) {
+        if (data[count]==32766) {
+          fputs(" NaN", outfile);
+        } else {
+          fprintf(outfile, "\t%.1f", data[count]/divisor);
+        }
+        count++;
+      }
+      fputs("\n", outfile);
+      current += header.seconds;
+    }
   }
   debug("ending ed3reader normally...");
   fclose(outfile);
@@ -108,13 +132,20 @@ int main(int argc, char *argv[])
 
 static char *fmttime(time_t t)
 {
-  static char buf[128];
-  memset(buf, 0, 128);
+  static char buf[64];
+  memset(buf, 0, 64);
   struct tm *tv = gmtime(&t);
-  size_t rv = strftime(buf, 40, "%Y-%m-%dT%H:%M:%S", tv);
+  strftime(buf, 63, "%Y-%m-%dT%H:%M:%S", tv);
+  return buf;
+}
+
+static char *fmttime_csv(time_t t)
+{
+  static char buf[64];
+  memset(buf, 0, 64);
   double exceldays = (double)t/86400.0;
   exceldays += 25569.0; // days between excel epoch and UNIX epoch.
-  snprintf(buf+rv, 127-rv, "\t%.6f", exceldays);
+  snprintf(buf, 63, "%.6f", exceldays);
   return buf;
 }
 
@@ -134,4 +165,22 @@ static void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Measurement interval %d %s.\n",
           header->interval, sv8cstring(header->interval_units));
   fprintf(outfile, "# Start date: %s\n", fmttime(header->start));
+}
+
+static void print_info_csv(Header *header, FILE *outfile)
+{
+  fprintf(outfile, "Device type,%s\r\n", sv8cstring(header->name));
+  fprintf(outfile, "Serial number,%s\r\n", sv8cstring(header->serial));
+  fprintf(outfile, "Device Id,%s\r\n", sv8cstring(header->device_id));
+  fprintf(outfile, "Firmware version,%s\r\n", sv8cstring(header->firmware_version));
+  fprintf(outfile, "Battery Capacity,%d\r\n", header->battery_capacity);
+  fprintf(outfile, "Last calibration,%s\r\n", sv8cstring(header->last_calibration));
+  fprintf(outfile, "Channel count,%d\r\n", header->channel_count);
+  fprintf(outfile, "Data count,%d samples\r\n", header->samples_count);
+  fprintf(outfile, "Temperature unit,%s\r\n", sv8cstring(header->unit));
+  fprintf(outfile, "Bits per sample,%d\r\n", header->bits);
+  fprintf(outfile, "Comma shift,%d positions to the left\r\n", header->comma_shift);
+  fprintf(outfile, "Measurement interval,%d %s\r\n",
+          header->interval, sv8cstring(header->interval_units));
+  fprintf(outfile, "Start date,%s\r\n", fmttime(header->start));
 }
