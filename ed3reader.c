@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-19T20:24:54+0100
+// Last modified: 2026-03-23T22:56:08+0100
 
 #include "arena.h"
 #include "logging.h"
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     for (int32_t j = 1; j <= header.channel_count; j++) {
       fprintf(outfile, ",ch%1d", j);
     }
-    fputs("\r\n", outfile);
+    fputs("\n", outfile);
     // Print the data.
     time_t current = header.start;
     int32_t count = 0;
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
         }
         count++;
       }
-      fputs("\r\n", outfile);
+      fputs("\n", outfile);
       current += header.seconds;
     }
   } else {
@@ -169,18 +169,18 @@ static void print_info(Header *header, FILE *outfile)
 
 static void print_info_csv(Header *header, FILE *outfile)
 {
-  fprintf(outfile, "Device type,%s\r\n", sv8cstring(header->name));
-  fprintf(outfile, "Serial number,%s\r\n", sv8cstring(header->serial));
-  fprintf(outfile, "Device Id,%s\r\n", sv8cstring(header->device_id));
-  fprintf(outfile, "Firmware version,%s\r\n", sv8cstring(header->firmware_version));
-  fprintf(outfile, "Battery Capacity,%d\r\n", header->battery_capacity);
-  fprintf(outfile, "Last calibration,%s\r\n", sv8cstring(header->last_calibration));
-  fprintf(outfile, "Channel count,%d\r\n", header->channel_count);
-  fprintf(outfile, "Data count,%d samples\r\n", header->samples_count);
-  fprintf(outfile, "Temperature unit,%s\r\n", sv8cstring(header->unit));
-  fprintf(outfile, "Bits per sample,%d\r\n", header->bits);
-  fprintf(outfile, "Comma shift,%d positions to the left\r\n", header->comma_shift);
-  fprintf(outfile, "Measurement interval,%d %s\r\n",
+  fprintf(outfile, "Device type,%s\n", sv8cstring(header->name));
+  fprintf(outfile, "Serial number,%s\n", sv8cstring(header->serial));
+  fprintf(outfile, "Device Id,%s\n", sv8cstring(header->device_id));
+  fprintf(outfile, "Firmware version,%s\n", sv8cstring(header->firmware_version));
+  fprintf(outfile, "Battery Capacity,%d\n", header->battery_capacity);
+  fprintf(outfile, "Last calibration,%s\n", sv8cstring(header->last_calibration));
+  fprintf(outfile, "Channel count,%d\n", header->channel_count);
+  fprintf(outfile, "Data count,%d samples\n", header->samples_count);
+  fprintf(outfile, "Temperature unit,%s\n", sv8cstring(header->unit));
+  fprintf(outfile, "Bits per sample,%d\n", header->bits);
+  fprintf(outfile, "Comma shift,%d positions to the left\n", header->comma_shift);
+  fprintf(outfile, "Measurement interval,%d %s\n",
           header->interval, sv8cstring(header->interval_units));
-  fprintf(outfile, "Start date,%s\r\n", fmttime(header->start));
+  fprintf(outfile, "Start date,%s\n", fmttime(header->start));
 }
