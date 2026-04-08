@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-03-23T22:56:08+0100
+// Last modified: 2026-04-08T23:50:13+0200
 
 #include "arena.h"
 #include "logging.h"
@@ -14,6 +14,7 @@
 #include "stringview.h"
 
 #include <assert.h>
+#include <locale.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -27,10 +28,13 @@
 #include <io.h> // for _setmode
 // instead of including windows.h....
 extern int __stdcall SetConsoleOutputCP(unsigned int);
+#define LOC "nl_NL"
+#else
+#define LOC "nl_NL.UTF-8"
 #endif
 
 static void print_info(Header *header, FILE *outfile);
-static void print_info_csv(Header *header, FILE *outfile);
+static void print_info_csv(Header *header, FILE *outfile, char sep);
 static char *fmttime(time_t t);
 static char *fmttime_csv(time_t t);
 
@@ -45,6 +49,9 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
   Options opt = setup(argc, argv);
+  if (opt.sep == ';') {
+    setlocale(LC_NUMERIC, LOC);
+  }
   debug("starting ed3reader...");
   Arena permanent = arena_create(32*1024*1024);
   Sv8 contents = read_file(opt.infile, &permanent);
@@ -78,10 +85,10 @@ int main(int argc, char *argv[])
   }
   if (opt.csv) {
     // Print CSV header
-    print_info_csv(&header, outfile);
+    print_info_csv(&header, outfile, opt.sep);
     fputs("Excel datevalue", outfile);
     for (int32_t j = 1; j <= header.channel_count; j++) {
-      fprintf(outfile, ",ch%1d", j);
+      fprintf(outfile, "%cch%1d", opt.sep, j);
     }
     fputs("\n", outfile);
     // Print the data.
@@ -93,7 +100,7 @@ int main(int argc, char *argv[])
         if (data[count]==32766) {
           fputs(",NaN", outfile);
         } else {
-          fprintf(outfile, ",%.1f", data[count]/divisor);
+          fprintf(outfile, "%c%.1f", opt.sep, data[count]/divisor);
         }
         count++;
       }
@@ -167,20 +174,20 @@ static void print_info(Header *header, FILE *outfile)
   fprintf(outfile, "# Start date: %s\n", fmttime(header->start));
 }
 
-static void print_info_csv(Header *header, FILE *outfile)
+static void print_info_csv(Header *header, FILE *outfile, char sep)
 {
-  fprintf(outfile, "Device type,%s\n", sv8cstring(header->name));
-  fprintf(outfile, "Serial number,%s\n", sv8cstring(header->serial));
-  fprintf(outfile, "Device Id,%s\n", sv8cstring(header->device_id));
-  fprintf(outfile, "Firmware version,%s\n", sv8cstring(header->firmware_version));
-  fprintf(outfile, "Battery Capacity,%d\n", header->battery_capacity);
-  fprintf(outfile, "Last calibration,%s\n", sv8cstring(header->last_calibration));
-  fprintf(outfile, "Channel count,%d\n", header->channel_count);
-  fprintf(outfile, "Data count,%d samples\n", header->samples_count);
-  fprintf(outfile, "Temperature unit,%s\n", sv8cstring(header->unit));
-  fprintf(outfile, "Bits per sample,%d\n", header->bits);
-  fprintf(outfile, "Comma shift,%d positions to the left\n", header->comma_shift);
-  fprintf(outfile, "Measurement interval,%d %s\n",
-          header->interval, sv8cstring(header->interval_units));
-  fprintf(outfile, "Start date,%s\n", fmttime(header->start));
+  fprintf(outfile, "Device type%c%s\n", sep, sv8cstring(header->name));
+  fprintf(outfile, "Serial number%c%s\n", sep, sv8cstring(header->serial));
+  fprintf(outfile, "Device Id%c%s\n", sep, sv8cstring(header->device_id));
+  fprintf(outfile, "Firmware version%c%s\n", sep, sv8cstring(header->firmware_version));
+  fprintf(outfile, "Battery Capacity%c%d\n", sep, header->battery_capacity);
+  fprintf(outfile, "Last calibration%c%s\n", sep, sv8cstring(header->last_calibration));
+  fprintf(outfile, "Channel count%c%d\n", sep, header->channel_count);
+  fprintf(outfile, "Data count%c%d samples\n", sep, header->samples_count);
+  fprintf(outfile, "Temperature unit%c%s\n", sep, sv8cstring(header->unit));
+  fprintf(outfile, "Bits per sample%c%d\n", sep, header->bits);
+  fprintf(outfile, "Comma shift%c%d positions to the left\n", sep, header->comma_shift);
+  fprintf(outfile, "Measurement interval%c%d %s\n",
+          sep, header->interval, sv8cstring(header->interval_units));
+  fprintf(outfile, "Start date%c%s\n", sep, fmttime(header->start));
 }
