@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-03-19T19:32:34+0100
+// Last modified: 2026-04-08T23:52:49+0200
 
 #include "setup.h"
 #include "logging.h"
@@ -43,7 +43,7 @@ const char license[] =
 
 
 const char help[] =
-  "usage: ed3reader [-h] [-v] [-l] [-c] [--log=(debug|info|warn|error|crit)] infile [outfile]\n"
+  "usage: ed3reader [-h] [-v] [-l] [-c|-d] [--log=(debug|info|warn|error|crit)] infile [outfile]\n"
   "\n"
   "Program for converting ed3 files from an EBI 40 temperature logger to plain text.\n"
   "Information from the data file header will be written to stderr, unless\n"
@@ -58,6 +58,7 @@ const char help[] =
   "  -v, --version         show program's version number and exit\n"
   "  -l, --license         print the license\n"
   "  -c, --csv             write output in CSV format\n"
+  "  -d, --dutch           write output in a Dutch CSV format\n"
   "  --log                 logging level debug,info,(default) warn,error,crit\n\n";
 
 
@@ -70,13 +71,14 @@ Options setup(int argc, char *argv[])
     {"version", no_argument, 0, 'v'},
     {"license", no_argument, 0, 'l'},
     {"csv", no_argument, 0, 'c'},
+    {"dutch", no_argument, 0, 'd'},
     {"log", required_argument, 0, 1000},
     {0,0,0,0}
   };
   logging_configure(name, LOG_WARNING);
   while (1) {
     int32_t option_index = 0;
-    choice = getopt_long(argc, argv, "hvlc", long_options, &option_index);
+    choice = getopt_long(argc, argv, "hvlcd", long_options, &option_index);
     if (choice == -1) {
       break;
     }
@@ -97,6 +99,11 @@ Options setup(int argc, char *argv[])
         break;
       case 'c':
         rv.csv = true;
+        rv.sep = ',';
+        break;
+      case 'd':
+        rv.csv = true;
+        rv.sep = ';';
         break;
       case 1000:
         if (strcasecmp(optarg, "debug")==0) {
