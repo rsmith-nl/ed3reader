@@ -78,6 +78,14 @@ tidy:  ## Run static code checker clang-tidy.
 tags: $(SRCS) *.h  ## Update tags file
 	uctags --language-force=C --kinds-C=+p-f *.h *.c
 
+.PHONY: release
+RELDATE:=$(VMAJOR).$(VMINOR).$(VPATCH)
+release: $(BASENAME).exe
+	mkdir releases/$(BASENAME)-c-w64-$(RELDATE)
+	cp $(BASENAME).exe README.rst releases/$(BASENAME)-c-w64-$(RELDATE)/
+	rm -f releases/*.zip
+	cd releases/ && zip -qr $(BASENAME)-c-w64-$(RELDATE).zip $(BASENAME)-c-w64-$(RELDATE)/
+
 .PHONY: help
 help:  ## List available commands
 	@echo "make targets:"
