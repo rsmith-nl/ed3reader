@@ -1,4 +1,5 @@
 *.o
+version.h
 ed3reader
 ed3reader.exe
 ed3reader-debug

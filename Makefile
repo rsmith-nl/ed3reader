@@ -60,8 +60,8 @@ install: $(BASENAME)  ## Install the program.
 uninstall:  ## Uninstall the program.
 	rm -f $(BINDIR)/$(BASENAME)
 
-version.h: Makefile
-	echo '#define VERSION "'${VMAJOR}"."${VMINOR}"."${VPATCH}'"' >version.h
+version.h: mkver.sh
+	./mkver.sh >version.h
 
 .PHONY: style
 style:  ## Reformat source code using astyle.

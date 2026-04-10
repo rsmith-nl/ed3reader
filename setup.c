@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:41:17 +0100
-// Last modified: 2026-04-08T23:52:49+0200
+// Last modified: 2026-04-10T19:00:52+0200
 
 #include "setup.h"
 #include "logging.h"
@@ -84,17 +84,17 @@ Options setup(int argc, char *argv[])
     }
     switch (choice) {
       case 'h':
-        printf("%s version: %s\n", name, VERSION);
+        puts("ed3reader "VERSION);
         printf(help);
         exit(0);
         break;
       case 'l':
-        printf("%s version: %s\n", name, VERSION);
+        puts("ed3reader "VERSION);
         printf(license);
         exit(0);
         break;
       case 'v':
-        printf("%s version: %s\n", name, VERSION);
+        puts(LONG_VERSION);
         exit(0);
         break;
       case 'c':
