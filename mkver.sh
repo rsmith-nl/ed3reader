@@ -9,6 +9,6 @@ echo "#define VERSION \""${RELEASE}"\""
 
 echo -n "#define LONG_VERSION \""${BASENAME}" version "${RELEASE}" (commit "
 git log -n 1 --pretty=%h|tr -d '\n'
-echo ")"
+echo ")\""
 
 echo "#define RELEASE_NAME \""${BASENAME}"-w64-"${RELEASE}"\""
