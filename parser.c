@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:58:54 +0100
-// Last modified: 2026-03-17T22:27:42+0100
+// Last modified: 2026-04-11T12:52:10+0200
 
 #include "arena.h"
 #include "logging.h"
@@ -217,7 +217,7 @@ Header read_header(Sv8 contents)
   if (!ccut.ok) {
     return fail;
   }
-  Sv8Int64 unixtime = sv8toi64(ccut.tail);
+  Sv8Int unixtime = sv8toi(ccut.tail);
   if (!unixtime.ok) {
     return fail;
   }
