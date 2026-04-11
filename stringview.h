@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2025-04-07 22:53:56 +0200
-// Last modified: 2026-03-14T05:26:36+0100
+// Last modified: 2026-03-28T10:03:18+0100
 
 // Inspired by: https://nullprogram.com/blog/2023/10/08/
 
@@ -40,16 +40,11 @@ typedef struct {
 } Sv8Double;
 
 typedef struct {
-  int32_t result;
-  Sv8 tail;
-  bool ok;
-} Sv8Int;
-
-typedef struct {
   int64_t result;
   Sv8 tail;
+  bool overflow, is32bits;
   bool ok;
-} Sv8Int64;
+} Sv8Int;
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,7 +107,6 @@ extern Sv8Cut sv8lsplit(Sv8 s);
 // If an integer was found, Sv8Int.ok equals true, otherwise false.
 // A view of the remaining string is returned in Sv8Int.tail.
 extern Sv8Int sv8toi(Sv8 s);
-extern Sv8Int64 sv8toi64(Sv8 s);
 
 // Tries to read a double from the beginning of a stringview.
 // Leading whitespace is skipped.
@@ -126,6 +120,7 @@ extern uint64_t sv8hash64(Sv8 s);
 
 // Return up to 255 bytes of the Sv8 as a C string.
 // This returns a pointer to a static buffer.
+// As an alternative for printing, you could use ``printf("%.*s\n", s.len, s.data)``.
 extern char *sv8cstring(Sv8 s);
 
 #ifdef __cplusplus
