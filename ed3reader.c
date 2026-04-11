@@ -5,16 +5,16 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2026-03-10 20:38:54 +0100
-// Last modified: 2026-04-10T13:47:19+0200
+// Last modified: 2026-04-11T14:37:22+0200
 
 #include "arena.h"
 #include "logging.h"
 #include "parser.h"
 #include "setup.h"
 #include "stringview.h"
+#include "sbuf.h"
 
 #include <assert.h>
-#include <locale.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -29,12 +29,10 @@
 // instead of including windows.h....
 extern int __stdcall SetConsoleOutputCP(unsigned int);
 #endif
-#define LOC "nl_NL.UTF-8"
 
 static void print_info(Header *header, FILE *outfile);
 static void print_info_csv(Header *header, FILE *outfile, char sep);
 static char *fmttime(time_t t);
-static char *fmttime_csv(time_t t);
 
 int main(int argc, char *argv[])
 {
@@ -47,8 +45,9 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
   Options opt = setup(argc, argv);
+  Sbuf line = {0};
   if (opt.sep == ';') {
-    setlocale(LC_NUMERIC, LOC);
+    line.decsep = ',';
   }
   debug("starting ed3reader...");
   Arena permanent = arena_create(32*1024*1024);
@@ -93,16 +92,21 @@ int main(int argc, char *argv[])
     time_t current = header.start;
     int32_t count = 0;
     while (count < total_values) {
-      fputs(fmttime_csv(current), outfile);
+      //fputs(fmttime_csv(current), outfile);
+      sbuf_reset(&line);
+      sbuf_appendd(&line, ((double)current)/86400.0 + 25569.0);
       for (int32_t j = 0; j < header.channel_count; j++) {
         if (data[count]==32766) {
-          fputs(",NaN", outfile);
+          sbuf_appendc(&line, opt.sep);
+          sbuf_appends(&line, "NaN");
         } else {
-          fprintf(outfile, "%c%.1f", opt.sep, data[count]/divisor);
+          sbuf_appendc(&line, opt.sep);
+          sbuf_appendd(&line, data[count]/divisor);
         }
         count++;
       }
-      fputs("\n", outfile);
+      sbuf_appendc(&line, '\n');
+      sbuf_fputs(&line, outfile);
       current += header.seconds;
     }
   } else {
@@ -141,16 +145,6 @@ static char *fmttime(time_t t)
   memset(buf, 0, 64);
   struct tm *tv = gmtime(&t);
   strftime(buf, 63, "%Y-%m-%dT%H:%M:%S", tv);
-  return buf;
-}
-
-static char *fmttime_csv(time_t t)
-{
-  static char buf[64];
-  memset(buf, 0, 64);
-  double exceldays = (double)t/86400.0;
-  exceldays += 25569.0; // days between excel epoch and UNIX epoch.
-  snprintf(buf, 63, "%.6f", exceldays);
   return buf;
 }
 
