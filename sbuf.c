@@ -5,7 +5,7 @@
 // Author: R.F. Smith <rsmith@xs4all.nl>
 // SPDX-License-Identifier: Unlicense
 // Created: 2025-08-28 23:49:02 +0200
-// Last modified: 2026-04-23T00:06:30+0200
+// Last modified: 2026-04-23T18:53:20+0200
 
 #include "sbuf.h"
 #include <assert.h>
@@ -122,7 +122,7 @@ extern void sbuf_appendd(Sbuf *buf, double f)
     // Format as dddd.dddddd, with 6 decimal places.
     // Format integer part
     int value = (int)f;
-    int frac = (int)((f - (double)value)*1e7);
+    int frac = (int)round((f - (double)value)*1e6);
     char intbuf[11] = {0};
     int index = sizeof(intbuf) - 2;
     do {
@@ -141,15 +141,13 @@ extern void sbuf_appendd(Sbuf *buf, double f)
     } else {
       tbuf[bufused++] = buf->decsep;
     }
-    char fracbuf[10] = {0};
+    char fracbuf[8] = {0};
     index = sizeof(fracbuf) - 2;
     do {
       div_t result = div(frac, 10);
       fracbuf[index--] = ORD0 + result.rem;
       frac = result.quot;
     } while (frac> 0 && index > 0);
-    // Remove last decimal
-    fracbuf[8] = 0;
     // Remove trailing 0 decimals
     int ridx = sizeof(fracbuf) - 3;
     while (fracbuf[ridx] == '0') {
