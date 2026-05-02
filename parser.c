@@ -36,11 +36,11 @@ typedef struct {
 
 Sv8 read_file(char *path, Arena *permanent)
 {
-  assert(path!=0);
-  assert(permanent!=0);
+  assert(path != 0);
+  assert(permanent != 0);
   Sv8 contents = {0};
   FILE *inputfile = fopen(path, "r");
-  if (inputfile==0) {
+  if (inputfile == 0) {
     error("could not open file %s for reading", path);
     exit(EXIT_FAILURE);
   }
@@ -68,25 +68,25 @@ static ContentString read_content_string(Sv8 contents, Sv8 name)
   Sv8 current = contents;
   // Check for start of element.
   ptrdiff_t index = sv8find(contents, name);
-  if (index==-1 || contents.data[index-1]!='<') {
+  if (index == -1 || contents.data[index - 1] != '<') {
     return rv;
   }
-  current.data += index+name.len;
-  current.len -= index+name.len;
+  current.data += index + name.len;
+  current.len -= index + name.len;
   // The next character should be ' ' or '>'.
-  if (current.data[0]!=' ' && current.data[0]!='>') {
+  if (current.data[0] != ' ' && current.data[0] != '>') {
     return rv;
   }
   ptrdiff_t index3 = sv8lindex(current, '>');
-  if (index3!=-1) {
-    current.data += index3+1;
-    current.len -= index3+1;
+  if (index3 != -1) {
+    current.data += index3 + 1;
+    current.len -= index3 + 1;
   } else {
     return rv;
   }
   rv.tail = current;
   ptrdiff_t index2 = sv8find(current, name);
-  if (index2==-1) {
+  if (index2 == -1) {
     rv.tail.data = 0;
     rv.tail.len = 0;
     return rv;
@@ -94,7 +94,7 @@ static ContentString read_content_string(Sv8 contents, Sv8 name)
   // Go back to before "</"
   index2 -= 2;
   rv.key = name;
-  rv.value = sv8span(current.data, current.data+index2);
+  rv.value = sv8span(current.data, current.data + index2);
   index2 = name.len + 4;
   rv.tail.data += index2;
   rv.tail.len -= index2;
@@ -200,7 +200,7 @@ Header read_header(Sv8 contents)
     return fail;
   }
   rv.interval = (int32_t)((uint32_t)intinfo.value & 0xfff);
-  uint32_t unit = ((uint32_t)intinfo.value & 0xf000)>>12;
+  uint32_t unit = ((uint32_t)intinfo.value & 0xf000) >> 12;
   switch (unit) {
     case 8:
       rv.interval_units = SV8("minutes");
@@ -253,10 +253,10 @@ static int b64decode(const char *in, int32_t inlen, char *out, int32_t outlen)
       obuf[ix++] = invB64[cur];
     }
     if (ix == 4) {
-      uint32_t k = (obuf[0]<<18)|(obuf[1]<<12)|(obuf[2]<<6)|obuf[3];
+      uint32_t k = (obuf[0] << 18) | (obuf[1] << 12) | (obuf[2] << 6) | obuf[3];
       memset(obuf, 0, 5);
       ix = 0;
-      unsigned char tmp[3] = {(k&0xff0000)>>16, (k&0xff00)>>8, k&0xff};
+      unsigned char tmp[3] = {(k & 0xff0000) >> 16, (k & 0xff00) >> 8, k & 0xff};
       for (int32_t q = 0; q < 3; q++) {
         *p++ = tmp[q];
         if (++outcnt >= outlen) {
@@ -301,7 +301,7 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
   current.data += 2;
   current.len -= 2;
   ptrdiff_t endix = sv8find(current, dend);
-  if (endix==-1) {
+  if (endix == -1) {
     debug("failed to find end of data.");
     return fail;
   }
@@ -317,7 +317,7 @@ DataBlock read_data_block(Sv8 contents, Arena *permanent)
     return fail;
   }
   // Append data to arena, so the data should be contiguous in the arena.
-  rv.b16 = arena_new(permanent, int16_t, conv/2);
+  rv.b16 = arena_new(permanent, int16_t, conv / 2);
   memcpy(rv.b16, outbuf, conv);
   rv.ok = true;
   return rv;

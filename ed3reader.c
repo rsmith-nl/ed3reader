@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     line.decsep = ',';
   }
   debug("starting ed3reader...");
-  Arena permanent = arena_create(32*1024*1024);
+  Arena permanent = arena_create(32 * 1024 * 1024);
   Sv8 contents = read_file(opt.infile, &permanent);
   info("input file %s has a size of %d bytes", opt.infile, contents.len);
   Header header = read_header(contents);
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   FILE *outfile = stdout;
   if (opt.outfile) {
     outfile = fopen(opt.outfile, "w");
-    if (outfile==0) {
+    if (outfile == 0) {
       error("could not open \"%s\" for writing.", opt.outfile);
       return EXIT_FAILURE;
     }
@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
   int32_t total_values = 0;
   DataBlock block = read_data_block(contents, &permanent);
   int16_t *data = block.b16;
-  while (block.ok && total_values < header.samples_count*header.channel_count) {
-    int32_t block_samples = block.count/header.channel_count;
+  while (block.ok && total_values < header.samples_count * header.channel_count) {
+    int32_t block_samples = block.count / header.channel_count;
     total_values += block_samples;
     block = read_data_block(block.tail, &permanent);
   }
   if (total_values > header.samples_count) {
-    total_values = header.samples_count*header.channel_count;
+    total_values = header.samples_count * header.channel_count;
   }
   if (opt.csv) {
     // Print CSV header
@@ -94,14 +94,14 @@ int main(int argc, char *argv[])
     while (count < total_values) {
       //fputs(fmttime_csv(current), outfile);
       sbuf_reset(&line);
-      sbuf_appendd(&line, ((double)current)/86400.0 + 25569.0);
+      sbuf_appendd(&line, ((double)current) / 86400.0 + 25569.0);
       for (int32_t j = 0; j < header.channel_count; j++) {
-        if (data[count]==32766) {
+        if (data[count] == 32766) {
           sbuf_appendc(&line, opt.sep);
           sbuf_appends(&line, "NaN");
         } else {
           sbuf_appendc(&line, opt.sep);
-          sbuf_appendd(&line, data[count]/divisor);
+          sbuf_appendd(&line, data[count] / divisor);
         }
         count++;
       }
@@ -123,10 +123,10 @@ int main(int argc, char *argv[])
     while (count < total_values) {
       fputs(fmttime(current), outfile);
       for (int32_t j = 0; j < header.channel_count; j++) {
-        if (data[count]==32766) {
+        if (data[count] == 32766) {
           fputs(" NaN", outfile);
         } else {
-          fprintf(outfile, "\t%.1f", data[count]/divisor);
+          fprintf(outfile, "\t%.1f", data[count] / divisor);
         }
         count++;
       }

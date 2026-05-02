@@ -73,7 +73,7 @@ Options setup(int argc, char *argv[])
     {"csv", no_argument, 0, 'c'},
     {"dutch", no_argument, 0, 'd'},
     {"log", required_argument, 0, 1000},
-    {0,0,0,0}
+    {0, 0, 0, 0}
   };
   logging_configure(name, LOG_WARNING);
   while (1) {
@@ -106,13 +106,13 @@ Options setup(int argc, char *argv[])
         rv.sep = ';';
         break;
       case 1000:
-        if (strcasecmp(optarg, "debug")==0) {
+        if (strcasecmp(optarg, "debug") == 0) {
           logging_configure(0, LOG_DEBUG);
-        } else if (strcasecmp(optarg, "info")==0) {
+        } else if (strcasecmp(optarg, "info") == 0) {
           logging_configure(0, LOG_INFO);
-        } else if (strcasecmp(optarg, "error")==0) {
+        } else if (strcasecmp(optarg, "error") == 0) {
           logging_configure(0, LOG_ERROR);
-        } else if (strcasecmp(optarg, "crit")==0) {
+        } else if (strcasecmp(optarg, "crit") == 0) {
           logging_configure(0, LOG_CRITICAL);
         } else {
           warning("unknown logging level \"%s\" ignored", optarg);
