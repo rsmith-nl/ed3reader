@@ -5,7 +5,7 @@ Reading EBI 40 temperature logger files
 :tags: C, reverse engineering, temperature logger
 :author: Roland Smith
 
-.. Last modified: 2026-03-19T21:14:58+0100
+.. Last modified: 2026-05-10T13:29:55+0200
 .. vim:spelllang=en
 
 At work we use an EBI 40 6-channel temperature logger.
@@ -27,7 +27,12 @@ executable.
 So I set out to rewrite it in C, in order to be able to compile it for POSIX
 systems and ms-windows.
 
-“AI” generated contributions and rewrites are not welcome.
+
+No AI policy
+============
+
+This code is by a human and for humans.
+"AI" / LLM-generated rewrites and additions are not welcome.
 
 
 Building the software
